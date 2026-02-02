@@ -1,0 +1,33 @@
+mspaint.AddonInfo = {
+    Name = "KnobFarm",
+    Title = "Knob Farm",
+    Description = "",
+    Game = "*",
+}
+game:GetService("Players").LocalPlayer.Idled:connect(function()
+    game:GetService("VirtualUser"):CaptureController()
+    game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+end)
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local player = Players.LocalPlayer
+local farmenabled = false
+
+
+mspaint.Groupbox:AddToggle("KnobFarm", {
+    Text = 'Knob Farm',
+    Tooltip = 'Knob farm only operates in room 0',
+    Default = false,
+ 
+    Callback = function(value)
+        farmenabled = value
+        while farmenabled do
+            replicatesignal(player.Kill)
+            game:GetService("ReplicatedStorage")
+            :WaitForChild("RemotesFolder")
+            :WaitForChild("Statistics")
+            :FireServer()
+            wait(0.25)
+        end
+    end
+})
