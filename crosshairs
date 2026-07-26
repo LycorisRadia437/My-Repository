@@ -1,0 +1,98 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- 1. Xóa tâm ngắm cũ nếu đã tồn tại
+if playerGui:FindFirstChild("CustomCrosshairGui") then
+    playerGui.CustomCrosshairGui:Destroy()
+end
+
+-- 2. BẢNG CẤU HÌNH TÂM NGẮM (Tùy chỉnh tại đây)
+local CONFIG = {
+    Type = "Cross",                      -- Kiểu: "Cross", "Dot", hoặc "Image"
+    Color = Color3.fromRGB(255, 255, 255), -- Màu sắc (R, G, B)
+    Size = 10,                           -- Độ dài nhánh / Kích thước (pixel)
+    Thickness = 2,                       -- Độ dày nét vẽ
+    Gap = 3,                             -- Khoảng trống ở giữa tâm (dành cho "Cross")
+    Outline = true,                      -- Viền đen xung quanh để tăng độ nổi bật
+    
+    -- Nếu chọn Type = "Image", dán ID ảnh vào đây:
+    ImageId = "rbxassetid://12345678" 
+}
+
+-- 3. Khởi tạo UI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CustomCrosshairGui"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true -- Căn chính xác tuyệt đối trung tâm màn hình
+screenGui.Parent = playerGui
+
+local centerFrame = Instance.new("Frame")
+centerFrame.Name = "CenterContainer"
+centerFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+centerFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+centerFrame.Size = UDim2.new(0, 0, 0, 0)
+centerFrame.BackgroundTransparency = 1
+centerFrame.Parent = screenGui
+
+local function createLine(name, position, size)
+    local line = Instance.new("Frame")
+    line.Name = name
+    line.AnchorPoint = Vector2.new(0.5, 0.5)
+    line.Position = position
+    line.Size = size
+    line.BackgroundColor3 = CONFIG.Color
+    line.BorderSizePixel = 0
+    line.Parent = centerFrame
+
+    if CONFIG.Outline then
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Color3.fromRGB(0, 0, 0)
+        stroke.Thickness = 1
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        stroke.Parent = line
+    end
+    return line
+end
+
+-- 4. Vẽ tâm ngắm dựa theo cấu hình
+if CONFIG.Type == "Dot" then
+    local dot = Instance.new("Frame")
+    dot.AnchorPoint = Vector2.new(0.5, 0.5)
+    dot.Position = UDim2.new(0, 0, 0, 0)
+    dot.Size = UDim2.new(0, CONFIG.Size, 0, CONFIG.Size)
+    dot.BackgroundColor3 = CONFIG.Color
+    dot.BorderSizePixel = 0
+    dot.Parent = centerFrame
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = dot
+
+    if CONFIG.Outline then
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Color3.fromRGB(0, 0, 0)
+        stroke.Thickness = 1
+        stroke.Parent = dot
+    end
+
+elseif CONFIG.Type == "Cross" then
+    local size = CONFIG.Size
+    local thick = CONFIG.Thickness
+    local gap = CONFIG.Gap + math.floor(thick / 2)
+
+    createLine("Top", UDim2.new(0, 0, 0, -(gap + size / 2)), UDim2.new(0, thick, 0, size))
+    createLine("Bottom", UDim2.new(0, 0, 0, gap + size / 2), UDim2.new(0, thick, 0, size))
+    createLine("Left", UDim2.new(0, -(gap + size / 2), 0, 0), UDim2.new(0, size, 0, thick))
+    createLine("Right", UDim2.new(0, gap + size / 2, 0, 0), UDim2.new(0, size, 0, thick))
+
+elseif CONFIG.Type == "Image" then
+    local img = Instance.new("ImageLabel")
+    img.AnchorPoint = Vector2.new(0.5, 0.5)
+    img.Position = UDim2.new(0, 0, 0, 0)
+    img.Size = UDim2.new(0, CONFIG.Size, 0, CONFIG.Size)
+    img.Image = CONFIG.ImageId
+    img.BackgroundTransparency = 1
+    img.ImageColor3 = CONFIG.Color
+    img.Parent = centerFrame
+end
