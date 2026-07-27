@@ -1,0 +1,70 @@
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+
+local Events = workspace:FindFirstChild("Events")
+local Blackout = Events and Events:FindFirstChild("Blackout")
+
+local function notify(msg)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Kaiju Paradise GUI",
+            Text = msg,
+            Duration = 5
+        })
+    end)
+end
+
+if not Blackout or not Blackout.Value then
+    notify("Không có sự kiện Blackout!")
+else
+    notify("Đang kiểm tra xem đã có ai lấy kính chưa...")
+    local Found = false
+
+    -- Dùng GetPlayers() thay vì GetChildren() để chính xác hơn
+    for _, v in pairs(Players:GetPlayers()) do
+        if v.Character and v.Character:FindFirstChild("Nightcrawler_Goggle") then
+            notify(v.Name .. " đã nhặt được goggle!")
+            Found = true
+            break
+        end
+    end
+
+    if not Found then
+        notify("Bắt đầu theo dõi sự kiện!")
+        notify("Sẽ tự động dịch chuyển khi Goggle xuất hiện...")
+
+        -- Chờ cho đến khi Kính xuất hiện hoặc hết Blackout
+        repeat 
+            task.wait(0.2) 
+        until workspace.Terrain:FindFirstChild("Nightvision") or not Blackout.Value
+
+        if not Blackout.Value then
+            notify("Không tìm thấy Goggle...")
+        else
+            local Nightvision = workspace.Terrain:FindFirstChild("Nightvision")
+            local char = Player.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+
+            if Nightvision and Nightvision:FindFirstChild("Hitbox") and hrp then
+                local curCFrame = hrp.CFrame
+
+                task.wait(0.1)
+                hrp.CFrame = Nightvision.Hitbox.CFrame
+                task.wait(0.5)
+
+                local prompt = Nightvision.Hitbox:FindFirstChild("Attachment") 
+                    and Nightvision.Hitbox.Attachment:FindFirstChild("GiveItem")
+
+                if prompt and fireproximityprompt then
+                    fireproximityprompt(prompt)
+                end
+
+                task.wait(0.1)
+                hrp.CFrame = curCFrame
+                notify("Đã lấy thành công!")
+            else
+                notify("Lỗi: Không tìm thấy nhân vật hoặc Hitbox goggle!")
+            end
+        end
+    end
+end
