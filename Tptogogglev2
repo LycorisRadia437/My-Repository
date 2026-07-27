@@ -1,0 +1,91 @@
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+
+local Events = workspace:FindFirstChild("Events")
+local Blackout = Events and Events:FindFirstChild("Blackout")
+
+local function notify(msg)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Kaiju Paradise GUI",
+            Text = msg,
+            Duration = 5
+        })
+    end)
+end
+
+-- Hàm kiểm tra xem một player có giữ kính không (trong Backpack hoặc Character)
+local function hasGoggle(plr)
+    local char = plr.Character
+    local backpack = plr:FindFirstChild("Backpack")
+    
+    local inChar = char and char:FindFirstChild("Nightcrawler_Goggle")
+    local inBackpack = backpack and backpack:FindFirstChild("Nightcrawler_Goggle")
+    
+    return inChar or inBackpack
+end
+
+if not Blackout or not Blackout.Value then
+    notify("Không có sự kiện Blackout!")
+else
+    notify("Đang kiểm tra xem đã có ai lấy kính chưa...")
+    
+    local found = false 
+    for _, v in pairs(Players:GetPlayers()) do 
+        if hasGoggle(v) then 
+            notify(v.Name .. " đã lấy Kính rồi!") 
+            found = true 
+            break 
+        end 
+    end
+
+    if found then 
+        return 
+    end
+
+    notify("Bắt đầu theo dõi sự kiện!")
+    notify("Sẽ tự động dịch chuyển khi Goggle xuất hiện...")
+
+    -- Chờ cho đến khi Kính xuất hiện hoặc hết Blackout
+    repeat 
+        task.wait(0.2) 
+    until workspace.Terrain:FindFirstChild("Nightvision") or not Blackout.Value
+
+    if not Blackout.Value then
+        notify("Không tìm thấy Goggle...")
+    else
+        local Nightvision = workspace.Terrain:FindFirstChild("Nightvision")
+        local char = Player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+
+        if Nightvision and Nightvision:FindFirstChild("Hitbox") and hrp then
+            task.wait(0.1)
+            -- Dịch chuyển đến vị trí kính
+            hrp.CFrame = Nightvision.Hitbox.CFrame
+            task.wait(0.5)
+
+            local prompt = Nightvision.Hitbox:FindFirstChild("Attachment") 
+                and Nightvision.Hitbox.Attachment:FindFirstChild("GiveItem")
+
+            if prompt then
+                -- Bắt buộc chỉnh thời gian giữ phím về 0
+                prompt.HoldDuration = 0
+                task.wait(0.1)
+
+                -- Kích hoạt lấy kính
+                if fireproximityprompt then
+                    fireproximityprompt(prompt)
+                elseif prompt.InputHoldBegin then
+                    -- Cách chữa cháy nếu fireproximityprompt bị lỗi
+                    prompt:InputHoldBegin()
+                    task.wait(0.1)
+                    prompt:InputHoldEnd()
+                end
+            end
+
+            notify("Đã lấy thành công!")
+        else
+            notify("Lỗi: Không tìm thấy nhân vật hoặc Hitbox goggle!")
+        end
+    end
+end
