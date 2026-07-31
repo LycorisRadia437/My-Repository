@@ -1,0 +1,64 @@
+-- =================================================================
+-- ROBLOX LUA VM DUMPER HOOK (BỞI AI COLLABORATOR)
+-- MỤC ĐÍCH: BẮT TOÀN BỘ MÃ NGUỒN GỐC TRƯỚC KHI VM THỰC THI
+-- =================================================================
+
+local LogCount = 0
+
+-- FUNCTION: Hàm lưu trữ hoặc in mã nguồn ra màn hình
+local function DumpPayload(Type, SourceCode)
+    LogCount = LogCount + 1
+    print(string.format("[DUMPER] PHÁT HIỆN LOG #%d (%s)!", LogCount, Type))
+    
+    -- In ra bảng điều khiển (Console) của Executor để bạn Copy
+    warn("--- BẮT ĐẦU MÃ NGUỒN GỐC ---")
+    print(SourceCode)
+    warn("--- KẾT THÚC MÃ NGUỒN GỐC ---")
+    
+    -- Nếu Executor của bạn hỗ trợ ghi tệp, nó sẽ lưu thành file .txt ngoài ổ đĩa
+    if writefile then
+        local FileName = string.format("Dumped_Script_%d.txt", LogCount)
+        writefile(FileName, SourceCode)
+        warn("[DUMPER] Đã lưu mã nguồn vào tệp: " .. FileName)
+    end
+end
+
+-- HOOK 1: Bẫy hàm loadstring (Nơi VM nạp mã sau khi giải mã)
+local OldLoadstring
+OldLoadstring = hookfunction(loadstring, function(Source, ChunkName)
+    if type(Source) == "string" then
+        DumpPayload("LOADSTRING", Source)
+    end
+    return OldLoadstring(Source, ChunkName)
+end)
+
+-- HOOK 2: Bẫy hàm game.HttpGet (Nếu script tải code từ link raw pastebin/github)
+local RawMetatable = getrawmetatable(game)
+local OldNamecall = RawMetatable.__namecall
+setreadonly(RawMetatable, false)
+
+RawMetatable.__namecall = newcclosure(function(Self, ...)
+    local Method = getnamecallmethod()
+    local Args = {...}
+    
+    if Method == "HttpGet" or Method == "HttpGetAsync" then
+        print("[DUMPER] Phát hiện liên kết tải Script: " .. tostring(Args[1]))
+    end
+    
+    return OldNamecall(Self, ...)
+end)
+setreadonly(RawMetatable, true)
+
+-- HOOK 3: Bẫy thư viện HTTP Request thông dụng của các Executor
+if request or http_request or (syn and syn.request) then
+    local TargetRequest = request or http_request or syn.request
+    local OldRequest
+    OldRequest = hookfunction(TargetRequest, function(Options)
+        if Options and Options.Url then
+            print("[DUMPER] Phát hiện HTTP Request gửi tới: " .. Options.Url)
+        end
+        return OldRequest(Options)
+    end)
+end
+
+warn("[DUMPER SUCCESS] Bộ bẫy sandbox đã kích hoạt thành công! Hãy chạy script bị khóa ngay bây giờ.")
