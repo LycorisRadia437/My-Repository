@@ -8,7 +8,7 @@
 --]]
 
 -- 1. NẠP KHUNG GIAO DIỆN SẠCH (Đã giải mã chuỗi Byte/Hex thô)
-local PepsiLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/LycorisRadia437/My-Repository/refs/heads/main/Pepsi%20ui.lua"))()
+local PepsiLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/JinxTheCatto/Neptune/main/NeptuneHub.lua"))()
 
 -- Khởi tạo Cửa sổ Menu chính
 local Window = PepsiLib:CreateWindow({
