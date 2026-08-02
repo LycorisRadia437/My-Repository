@@ -10,6 +10,36 @@
 -- 1. NẠP KHUNG GIAO DIỆN SẠCH (Đã giải mã chuỗi Byte/Hex thô)
 local PepsiLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/JinxTheCatto/Neptune/main/NeptuneHub.lua"))()
 
+-- 2. TẠO NÚT NỔI (FLOATING TOGGLE BUTTON) ĐỂ ẨN/HIỆN MENU TRÊN MOBILE
+local ScreenGui = Instance.new("ScreenGui")
+local ToggleButton = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+
+ScreenGui.Name = "NeptuneMobileToggle"
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ResetOnSpawn = false
+
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(220, 20, 60) -- Màu đỏ Crimson sang trọng
+ToggleButton.Position = UDim2.new(0.05, 0, 0.15, 0) -- Nằm góc trên bên trái, tránh các nút điều khiển gốc của game
+ToggleButton.Size = UDim2.new(0, 65, 0, 35) -- Kích thước vừa vặn ngón tay cái
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Text = "MENU"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 14.00
+ToggleButton.Active = true
+ToggleButton.Draggable = true -- Tính năng vuốt/kéo nút đến vị trí bất kỳ trên màn hình tránh vướng víu
+
+local UI_Open = true
+ToggleButton.MouseButton1Click:Connect(function()
+    UI_Open = not UI_Open
+    game:GetService("CoreGui"):FindFirstChild("Kaiju Paradise | Neptune Mobile VIP").Enabled = UI_Open
+end)
+
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = ToggleButton
+
 -- Khởi tạo Cửa sổ Menu chính
 local Window = PepsiLib:CreateWindow({
     Name = "Kaiju Paradise | Neptune VIP",
@@ -17,7 +47,7 @@ local Window = PepsiLib:CreateWindow({
     Themeable = true
 })
 
--- 2. KHỞI TẠO BỘ ĐIỀU KHIỂN HỆ THỐNG GAME (Roblox Core Variables)
+-- 3. KHỞI TẠO BỘ ĐIỀU KHIỂN HỆ THỐNG GAME (Roblox Core Variables)
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
