@@ -14,6 +14,8 @@ end
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 --// Variables \\--
 local Player = Players.LocalPlayer
@@ -21,8 +23,8 @@ local RemoteWeapon = ReplicatedStorage:WaitForChild("Remote", 5)
 local Event = RemoteWeapon and RemoteWeapon:WaitForChild("Weapon", 5) and RemoteWeapon.Weapon:WaitForChild("Use", 5)
 
 --// UI & ESP Library \\--
-local ESP = loadstring(game:HttpGet("https://kiriot22.com/releases/ESP.lua"))()
-local Library = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/Just-Egg-Salad/roblox-scripts/main/uwuware'))()
+local ESP = loadstring(game:HttpGet("https://kiriot22.com"))()
+local Library = loadstring(game:HttpGetAsync('https://githubusercontent.com'))()
 
 --// ESP Settings \\--
 if ESP then
@@ -31,7 +33,7 @@ if ESP then
 end
 
 --// UI \\--
-local Window = Library:CreateWindow("Smacker Mobile - Fixed")
+local Window = Library:CreateWindow("Smacker Mobile - Fixed Click")
 Window:AddToggle({
     text = "Enabled"
 })
@@ -54,7 +56,7 @@ Window:AddButton({
 
 local Folder = Window:AddFolder("Transformations")
 
--- Kiểm tra và bọc hàm firetouchinterest phòng lỗi trên Mobile
+-- Khối xử lý giả lập Touch Interest an toàn
 local function safeTouch(part1, part2)
     if firetouchinterest then
         firetouchinterest(part1, part2, 0)
@@ -113,12 +115,96 @@ if ToxicRabbit then
     })
 end
 
--- Khởi tạo UI và tự động đưa vào phân vùng ẩn an toàn trên Mobile
+-- Khởi tạo Menu gốc trước khi bọc sửa lỗi click
+Library:Init()
+
+--// 🛠️ ĐOẠN CODE FIX LỖI CLICK CHO MOBILE (CRITICAL FIX) 🛠️ \\--
 local uiContainer = game:GetService("CoreGui"):FindFirstChild("uwuware") or game:GetService("CoreGui"):FindFirstChildOfClass("ScreenGui")
 if uiContainer then
     ProtectGUI(uiContainer)
+    
+    -- Duyệt qua toàn bộ các nút bấm và tùy chọn của Menu để ép nhận Touch Input
+    local function FixMobileInputs(instance)
+        if instance:IsA("TextButton") or instance:IsA("ImageButton") then
+            instance.Active = true
+            -- Giả lập click chuột khi người chơi chạm màn hình điện thoại
+            instance.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.Touch and instance.Visible then
+                    -- Kích hoạt sự kiện bấm nút gốc của thư viện
+                    if instance.MouseButton1Click then
+                        for _, connection in pairs(getconnections(instance.MouseButton1Click)) do
+                            connection:Fire()
+                        end
+                    end
+                end
+            end)
+        end
+    end
+    
+    for _, obj in pairs(uiContainer:GetDescendants()) do
+        FixMobileInputs(obj)
+    end
+    uiContainer.DescendantAdded:Connect(FixMobileInputs)
 end
-Library:Init()
+
+--// 📱 TẠO NÚT NỔI ĐỂ ẨN/HIỆN MENU CẢM ỨNG \\--
+local MobileGui = Instance.new("ScreenGui")
+local TouchButton = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+
+MobileGui.Name = "MobileTouchMenu"
+ProtectGUI(MobileGui)
+
+TouchButton.Name = "TouchButton"
+TouchButton.Parent = MobileGui
+TouchButton.Position = UDim2.new(0.1, 0, 0.25, 0)
+TouchButton.Size = UDim2.new(0, 65, 0, 65)
+TouchButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TouchButton.BackgroundTransparency = 0.2
+TouchButton.Text = "ẨN/HIỆN"
+TouchButton.TextColor3 = Color3.fromRGB(0, 255, 150) -- Đổi màu chữ sang xanh neon cho dễ nhìn
+TouchButton.TextSize = 13
+TouchButton.Font = Enum.Font.SourceSansBold
+TouchButton.Active = true
+
+UICorner.CornerRadius = UDim.new(0, 15)
+UICorner.Parent = TouchButton
+
+local menuVisible = true
+TouchButton.MouseButton1Click:Connect(function()
+    if uiContainer then
+        menuVisible = not menuVisible
+        uiContainer.Enabled = menuVisible
+    end
+end)
+
+-- Code xử lý kéo rê (Drag) nút nổi mượt mà trên Mobile
+local dragging, dragInput, dragStart, startPos
+local function update(input)
+    local delta = input.Position - dragStart
+    local targetPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    TweenService:Create(TouchButton, TweenInfo.new(0.08), {Position = targetPos}):Play()
+end
+
+TouchButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = TouchButton.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+
+TouchButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then update(input) end
+end)
+
 
 --// Get Weapon \\--
 function GetWeapon()
@@ -151,17 +237,13 @@ function GetEnemy()
 end
 
 --// Smacker Loop \\--
--- Sử dụng task.spawn để vòng lặp chạy nền mượt mà không gây đơ máy Mobile
 task.spawn(function()
     while true do
-        task.wait(0.1) -- Giới hạn tần suất quét nhẹ để tránh quá tải CPU Mobile
-        
+        task.wait(0.1)
         if Library.flags and Library.flags.Enabled then
             local Weapons = GetWeapon()
             local Enemy = GetEnemy()
-            
             if Weapons ~= false and Enemy ~= false and Event then
-                print("Target:", Enemy.Parent.Name, "Distance:", Player:DistanceFromCharacter(Enemy.Position))
                 for i = 1, 5 do
                     Event:FireServer(Enemy)
                 end
