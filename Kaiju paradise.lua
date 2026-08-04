@@ -21,8 +21,8 @@ local RemoteWeapon = ReplicatedStorage:WaitForChild("Remote", 5)
 local Event = RemoteWeapon and RemoteWeapon:WaitForChild("Weapon", 5) and RemoteWeapon.Weapon:WaitForChild("Use", 5)
 
 --// UI & ESP Library \\--
-local ESP = loadstring(game:HttpGet("https://kiriot22.com"))()
-local Library = loadstring(game:HttpGetAsync('https://githubusercontent.com'))()
+local ESP = loadstring(game:HttpGet("https://kiriot22.com/releases/ESP.lua"))()
+local Library = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/Just-Egg-Salad/roblox-scripts/main/uwuware'))()
 
 --// ESP Settings \\--
 if ESP then
