@@ -20,9 +20,9 @@ local Player = Players.LocalPlayer
 local RemoteWeapon = ReplicatedStorage:WaitForChild("Remote", 5)
 local Event = RemoteWeapon and RemoteWeapon:WaitForChild("Weapon", 5) and RemoteWeapon.Weapon:WaitForChild("Use", 5)
 
---// UI & ESP Library \\--
-local ESP = loadstring(game:HttpGet("https://kiriot22.com"))()
-local Library = loadstring(game:HttpGetAsync('https://githubusercontent.com'))()
+--// UI & ESP Library \-- 
+local ESP = loadstring(game:HttpGet("https://kiriot22.com/releases/ESP.lua"))() 
+local Library = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/LycorisRadia437/My-Repository/refs/heads/main/uwuware.lua'))()
 
 --// ESP Settings \\--
 if ESP then
