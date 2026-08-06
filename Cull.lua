@@ -1,72 +1,82 @@
--- CÀI ĐẶT DÀNH CHO DELTA EXECUTOR (ĐÃ SỬA LỖI RAYCAST)
-local CHECK_INTERVAL = 0.35 -- Tăng nhẹ thời gian chờ để máy không bị lag
-local MAX_CULL_DISTANCE = 900 -- Khoảng cách tối đa để render vật thể
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- BIẾN HỆ THỐNG
-local camera = workspace.CurrentCamera
-local raycastParams = RaycastParams.new()
-raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
 
--- TỰ ĐỘNG GOM DANH SÁCH PART TRONG MAP
-local targetParts = {}
-for _, obj in ipairs(workspace:GetDescendants()) do
-    if (obj:IsA("MeshPart") or obj:IsA("BasePart")) 
-       and not obj:IsDescendantOf(game.Players.LocalPlayer.Character or workspace.CurrentCamera) 
-       and obj.Name ~= "Baseplate" 
-       and obj.Name ~= "Terrain" then
-        table.insert(targetParts, obj)
-    end
-end
+-- Cấu hình
+local MAX_DISTANCE = 200 -- Khoảng cách tối đa để tải vật thể (studs)
+local REFRESH_RATE = 0.1 -- Thời gian chờ giữa các lần kiểm tra (giây)
 
--- HÀM KIỂM TRA ĐIỀU KIỆN NHÌN THẤY
-local function checkVisibility(part, playerChar)
-    if not part or not part:IsA("BasePart") then return false end
-    local partPos = part.Position
-    local camPos = camera.CFrame.Position
-    
-    -- 1. Kiểm tra khoảng cách
-    local distance = (partPos - camPos).Magnitude
-    if distance > MAX_CULL_DISTANCE then return false end
+-- Tạo thư mục lưu trữ tạm thời trong ReplicatedStorage để không bị Render
+local StorageFolder = ReplicatedStorage:FindFirstChild("RenderStorage") or Instance.new("Folder")
+StorageFolder.Name = "RenderStorage"
+StorageFolder.Parent = ReplicatedStorage
 
-    -- 2. Frustum Culling (Góc nhìn màn hình)
-    local _, onScreen = camera:WorldToScreenPoint(partPos)
-    if not onScreen then return false end
+-- Tạo thư mục chứa các Part của Map trong Workspace để dễ quản lý
+local MapFolder = Workspace:FindFirstChild("ManagedMap") or Instance.new("Folder")
+MapFolder.Name = "ManagedMap"
+MapFolder.Parent = Workspace
 
-    -- 3. Occlusion Culling (Vật cản - ĐÃ SỬA LỖI TẠI ĐÂY)
-    if playerChar then
-        raycastParams.FilterDescendantsInstances = {playerChar, part}
-    else
-        raycastParams.FilterDescendantsInstances = {part}
-    end
-
-    local direction = partPos - camPos
-    local rayResult = workspace:Raycast(camPos, direction, raycastParams)
-
-    if rayResult and rayResult.Instance then
-        -- Nếu bị tường chắn và tường đó không trong suốt
-        if rayResult.Instance.CanCollide and rayResult.Instance.Transparency < 0.5 then
-            return false 
+-- Di chuyển các vật thể hiện có trong Workspace vào thư mục quản lý (trừ Nhân vật và Camera)
+for _, object in ipairs(Workspace:GetChildren()) do
+    if object:IsA("BasePart") or object:IsA("Model") then
+        if not Players:GetPlayerFromCharacter(object) and object ~= Camera and object.Name ~= "Terrain" then
+            object.Parent = MapFolder
         end
     end
-
-    return true
 end
 
--- VÒNG LẶP CHẠY CHÍNH
+-- Danh sách lưu trữ thông tin vị trí gốc của vật thể
+local ObjectRegistry = {}
+
+local function registerObjects(folder)
+    for _, obj in ipairs(folder:GetDescendants()) do
+        if obj:IsA("BasePart") and not ObjectRegistry[obj] then
+            ObjectRegistry[obj] = {
+                Position = obj.Position,
+                OriginalParent = obj.Parent
+            }
+        end
+    end
+end
+
+registerObjects(MapFolder)
+
+-- Hàm kiểm tra vật thể có nằm trong góc nhìn (Frustum) của Camera không
+local function isInCameraView(position)
+    local _, onScreen = Camera:WorldToScreenPoint(position)
+    return onScreen
+end
+
+-- Sử dụng task.spawn và task.wait để chạy vòng lặp tối ưu không gây nghẽn game
 task.spawn(function()
     while true do
-        local localPlayer = game.Players.LocalPlayer
-        local char = localPlayer and localPlayer.Character
+        task.wait(REFRESH_RATE) -- Sử dụng task.wait để giảm tải cho CPU thay vì quét theo khung hình
         
-        for _, object in ipairs(targetParts) do
-            if object and object.Parent then
-                if checkVisibility(object, char) then
-                    object.LocalTransparencyModifier = 0 -- Hiện khi nhìn thấy
-                else
-                    object.LocalTransparencyModifier = 1 -- Ẩn khi bị che/ngoài màn hình
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local charPos = character.HumanoidRootPart.Position
+
+            for obj, info in pairs(ObjectRegistry) do
+                if obj then
+                    local distance = (info.Position - charPos).Magnitude
+                    
+                    -- Nếu thỏa mãn: Gần + Nằm trong tầm nhìn Camera -> Đưa về Map để Render
+                    if distance <= MAX_DISTANCE and isInCameraView(info.Position) then
+                        if obj.Parent == StorageFolder then
+                            obj.Parent = info.OriginalParent
+                        end
+                    else
+                        -- Nếu khuất màn hình hoặc quá xa -> Cất vào kho tạm (Ngừng render hoàn toàn)
+                        if obj.Parent ~= StorageFolder then
+                            obj.Parent = StorageFolder
+                        end
+                    end
                 end
             end
         end
-        task.wait(CHECK_INTERVAL)
     end
 end)
