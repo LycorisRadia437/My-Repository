@@ -1,4 +1,4 @@
--- Modernized Touch Fling + Anti-Fling GUI (MAX SENSITIVITY)
+-- Modernized Touch Fling + Anti-Fling GUI (FIXED RESET VOID BUG)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -24,7 +24,7 @@ Frame.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
 Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Frame.BorderSizePixel = 0
 Frame.Position = UDim2.new(0.4, 0, 0.4, 0)
-Frame.Size = UDim2.new(0, 158, 0, 160) -- Tăng chiều cao để chứa 2 nút
+Frame.Size = UDim2.new(0, 158, 0, 160)
 
 local TitleFrame = Instance.new("Frame")
 TitleFrame.Parent = Frame
@@ -90,35 +90,42 @@ UserInputService.InputChanged:Connect(function(input)
 	end
 end)
 
--- Logic Fling (Tấn công)
+-- VÒNG LẶP FLING (ĐÃ KHẮC PHỤC LỖI RESET)
 local isFlinging = false
-local flingThread
+local flingRunning = false
 
-local function fling()
-	local c, hrp, vel, movel = nil, nil, nil, 0.1
+local function startFlingLoop()
+	if flingRunning then return end
+	flingRunning = true
 	
-	while isFlinging do
-		RunService.Heartbeat:Wait()
-		c = lp.Character
-		hrp = c and c:FindFirstChild("HumanoidRootPart")
-		
-		if hrp then
-			vel = hrp.AssemblyLinearVelocity
+	task.spawn(function()
+		local movel = 0.1
+		while isFlinging do
+			RunService.Heartbeat:Wait()
+			local c = lp.Character
+			local hrp = c and c:FindFirstChild("HumanoidRootPart")
+			local hum = c and c:FindFirstChildOfClass("Humanoid")
 			
-			hrp.AssemblyLinearVelocity = vel * 999999999999999 + Vector3.new(0, 999999999999999, 0)
-			hrp.AssemblyAngularVelocity = Vector3.new(0, 999999999999999, 0)
-			
-			RunService.RenderStepped:Wait()
-			
-			hrp.AssemblyLinearVelocity = vel
-			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-			
-			RunService.Stepped:Wait()
-			
-			hrp.AssemblyLinearVelocity = vel + Vector3.new(0, movel, 0)
-			movel = -movel
+			-- Chỉ Fling khi nhân vật tồn tại và còn sống (> 0 HP)
+			if hrp and hum and hum.Health > 0 then
+				local vel = hrp.AssemblyLinearVelocity
+				
+				hrp.AssemblyLinearVelocity = vel * 999999999999999 + Vector3.new(0, 999999999999999, 0)
+				hrp.AssemblyAngularVelocity = Vector3.new(0, 999999999999999, 0)
+				
+				RunService.RenderStepped:Wait()
+				
+				hrp.AssemblyLinearVelocity = vel
+				hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+				
+				RunService.Stepped:Wait()
+				
+				hrp.AssemblyLinearVelocity = vel + Vector3.new(0, movel, 0)
+				movel = -movel
+			end
 		end
-	end
+		flingRunning = false
+	end)
 end
 
 FlingBtn.MouseButton1Click:Connect(function()
@@ -126,35 +133,28 @@ FlingBtn.MouseButton1Click:Connect(function()
 	FlingBtn.Text = isFlinging and "Fling: ON" or "Fling: OFF"
 	
 	if isFlinging then
-		flingThread = coroutine.create(fling)
-		coroutine.resume(flingThread)
+		startFlingLoop()
 	else
 		local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
 		if hrp then
-			hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-			hrp.AssemblyAngularVelocity = Vector3.new(0,0,0)
+			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
 		end
 	end
 end)
 
--- Logic Anti-Fling (Phòng thủ)
+-- VÒNG LẶP ANTI-FLING
 local isAntiFling = false
-local antiFlingConnection
 
-AntiFlingBtn.MouseButton1Click:Connect(function()
-	isAntiFling = not isAntiFling
-	AntiFlingBtn.Text = isAntiFling and "Anti-Fling: ON" or "Anti-Fling: OFF"
-	
-	if isAntiFling then
-		-- Chạy trên Stepped (kích hoạt ngay trước khi engine vật lý tính toán va chạm)
-		antiFlingConnection = RunService.Stepped:Connect(function()
+task.spawn(function()
+	while true do
+		RunService.Stepped:Wait()
+		if isAntiFling then
 			for _, player in ipairs(Players:GetPlayers()) do
 				if player ~= lp and player.Character then
 					for _, part in ipairs(player.Character:GetDescendants()) do
 						if part:IsA("BasePart") then
-							-- Nếu vận tốc của người khác lớn hơn mức bình thường (>250)
 							if part.AssemblyLinearVelocity.Magnitude > 250 or part.AssemblyAngularVelocity.Magnitude > 250 then
-								-- Ép vận tốc của họ về 0 ở máy của bạn
 								part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
 								part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
 							end
@@ -162,12 +162,20 @@ AntiFlingBtn.MouseButton1Click:Connect(function()
 					end
 				end
 			end
-		end)
-	else
-		-- Tắt Anti-Fling
-		if antiFlingConnection then
-			antiFlingConnection:Disconnect()
-			antiFlingConnection = nil
 		end
+	end
+end)
+
+AntiFlingBtn.MouseButton1Click:Connect(function()
+	isAntiFling = not isAntiFling
+	AntiFlingBtn.Text = isAntiFling and "Anti-Fling: ON" or "Anti-Fling: OFF"
+end)
+
+-- TỰ ĐỘNG CHẠY LẠI KHI HOÀN TẤT HỒI SINH
+lp.CharacterAdded:Connect(function(newChar)
+	local hum = newChar:WaitForChild("Humanoid", 10)
+	if hum and isFlinging then
+		task.wait(0.5)
+		startFlingLoop()
 	end
 end)
