@@ -105,8 +105,8 @@ local function fling()
 		if hrp then
 			vel = hrp.AssemblyLinearVelocity
 			
-			hrp.AssemblyLinearVelocity = vel * 99999 + Vector3.new(0, 99999, 0)
-			hrp.AssemblyAngularVelocity = Vector3.new(0, 99999, 0)
+			hrp.AssemblyLinearVelocity = vel * 999999999999999 + Vector3.new(0, 999999999999999, 0)
+			hrp.AssemblyAngularVelocity = Vector3.new(0, 999999999999999, 0)
 			
 			RunService.RenderStepped:Wait()
 			
