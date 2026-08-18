@@ -109,8 +109,8 @@ local function startFlingLoop()
 			if hrp and hum and hum.Health > 0 then
 				local vel = hrp.AssemblyLinearVelocity
 				-- Giảm vận tốc xuống mức an toàn chuẩn (10000) đủ hất văng người khác mà không bay mất nhân vật
-				hrp.AssemblyLinearVelocity = Vector3.new(0, 99999, 0)
-				hrp.AssemblyAngularVelocity = Vector3.new(0, 99999, 0)
+				hrp.AssemblyLinearVelocity = Vector3.new(99999, 99999, 99999)
+				hrp.AssemblyAngularVelocity = Vector3.new(99999, 99999, 99999)
 
 				RunService.RenderStepped:Wait()
 				hrp.AssemblyLinearVelocity = vel
