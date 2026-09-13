@@ -1,11 +1,11 @@
 -- ==========================================
--- AVATAR COPIER (DELTA FIX + DYNAMIC HEAD SUPPORT)
+-- AVATAR COPIER (DIRECT ASSET INJECTION FIX)
 -- ==========================================
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- 1. TẠO GIAO DIỆN (TỰ ĐỘNG XÓA BẢN CŨ)
+-- 1. TẠO GIAO DIỆN & XÓA BẢN CŨ
 local coreGui = pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 for _, ui in ipairs(coreGui:GetChildren()) do
     if ui.Name == "MobileAvatarCopier" then ui:Destroy() end
@@ -27,9 +27,9 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(1, -30, 0, 40)
 Title.Font = Enum.Font.SourceSansBold
-Title.Text = "AVATAR COPIER (DYNAMIC HEAD)"
+Title.Text = "AVATAR COPIER (SAFE MODE)"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 15
+Title.TextSize = 14
 
 local CloseButton = Instance.new("TextButton", MainFrame)
 CloseButton.BackgroundTransparency = 1
@@ -80,12 +80,11 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 -- ==========================================
--- HỆ THỐNG HÀN PHỤ KIỆN TỰ ĐỘNG CHO DELTA
+-- HỆ THỐNG HÀN PHỤ KIỆN (CHỐNG RỚT)
 -- ==========================================
 local function ForceWeldAccessory(char, accessory)
     local handle = accessory:FindFirstChild("Handle")
     if not handle then return end
-
     local att = handle:FindFirstChildOfClass("Attachment")
     if not att then return end
 
@@ -94,9 +93,7 @@ local function ForceWeldAccessory(char, accessory)
         if part:IsA("BasePart") then
             local foundAtt = part:FindFirstChild(att.Name)
             if foundAtt then
-                targetPart = part
-                charAtt = foundAtt
-                break
+                targetPart = part; charAtt = foundAtt; break
             end
         end
     end
@@ -121,7 +118,7 @@ local function ForceWeldAccessory(char, accessory)
 end
 
 -- ==========================================
--- HÀM COPY AVATAR VÀ DYNAMIC HEAD CHÍNH
+-- HÀM COPY AN TOÀN TRÁNH BỊ CHẶN QUYỀN
 -- ==========================================
 local function ForceCopyAvatar(targetUserId)
     local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
@@ -130,85 +127,109 @@ local function ForceCopyAvatar(targetUserId)
 
     -- 1. XÓA ĐỒ CŨ
     for _, v in ipairs(char:GetChildren()) do
-        if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") or v:IsA("ShirtGraphic") or v:IsA("CharacterMesh") then
+        if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") or v:IsA("ShirtGraphic") or v:IsA("CharacterMesh") or v:IsA("BodyColors") then
             v:Destroy()
         end
     end
 
-    -- 2. TẢI BẢN SAO 
+    -- 2. TẢI MÔ HÌNH MỤC TIÊU QUA API AN TOÀN
     local success, targetModel = pcall(function()
         return Players:CreateHumanoidModelFromUserId(targetUserId)
     end)
-    if not success or not targetModel then return false, "Không tải được Dữ liệu" end
+    if not success or not targetModel then return false, "Không tải được dữ liệu nhân vật!" end
 
-    -- 3. CHÉP PHỤ KIỆN VÀ QUẦN ÁO
-    for _, item in ipairs(targetModel:GetChildren()) do
-        if item:IsA("Accessory") then
-            ForceWeldAccessory(char, item:Clone())
-        elseif item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("BodyColors") or item:IsA("CharacterMesh") then
-            for _, old in ipairs(char:GetChildren()) do
-                if old.ClassName == item.ClassName then old:Destroy() end
-            end
-            item:Clone().Parent = char
+    -- 3. ĐỒNG BỘ MÀU SẮC CƠ THỂ
+    local targetColors = targetModel:FindFirstChildOfClass("BodyColors")
+    if targetColors then
+        targetColors:Clone().Parent = char
+    else
+        local targetHeadModel = targetModel:FindFirstChild("Head")
+        local myBodyColors = Instance.new("BodyColors")
+        if targetHeadModel and targetHeadModel:IsA("BasePart") then
+            myBodyColors.HeadColor3 = targetHeadModel.Color
+            myBodyColors.TorsoColor3 = targetHeadModel.Color
+            myBodyColors.LeftArmColor3 = targetHeadModel.Color
+            myBodyColors.RightArmColor3 = targetHeadModel.Color
+            myBodyColors.LeftLegColor3 = targetHeadModel.Color
+            myBodyColors.RightLegColor3 = targetHeadModel.Color
         end
+        myBodyColors.Parent = char
     end
 
-    -- 4. XỬ LÝ KHUÔN MẶT (DYNAMIC HEAD & CLASSIC HEAD)
+    -- 4. SAO CHÉP ĐẦU VÀ DỮ LIỆU ĐẦU DYNAMIC KHÔNG QUA API CHẶN
     local myHead = char:FindFirstChild("Head")
     local targetHead = targetModel:FindFirstChild("Head")
     
     if myHead and targetHead then
-        -- Dọn dẹp Decal, SurfaceAppearance, FaceControls, SpecialMesh cũ của mình
+        myHead.Transparency = 1
         for _, v in ipairs(myHead:GetChildren()) do
             if v:IsA("Decal") or v:IsA("SurfaceAppearance") or v:IsA("FaceControls") or v:IsA("SpecialMesh") then
                 v:Destroy()
             end
         end
         
-        -- Nếu cả 2 đều là MeshPart (R15 Dynamic) -> Copy thẳng chỉ số khung lưới
-        if myHead:IsA("MeshPart") and targetHead:IsA("MeshPart") then
-            myHead.MeshId = targetHead.MeshId
-            myHead.TextureID = targetHead.TextureID
-            myHead.Color = targetHead.Color
-            myHead.Size = targetHead.Size
-        end
+        local oldFakeHead = char:FindFirstChild("FakeHeadAvatarCopier")
+        if oldFakeHead then oldFakeHead:Destroy() end
         
-        -- Xử lý Classic Head (R6 hoặc đầu hộp)
-        local targetSpecialMesh = targetHead:FindFirstChildOfClass("SpecialMesh")
-        if targetSpecialMesh then
-            targetSpecialMesh:Clone().Parent = myHead
-        elseif targetHead:IsA("MeshPart") and not myHead:IsA("MeshPart") then
-            -- Nếu Target dùng Dynamic Head nhưng mình dùng Classic Head (Giả lập)
-            local fakeMesh = Instance.new("SpecialMesh")
-            fakeMesh.MeshId = targetHead.MeshId
-            fakeMesh.TextureId = targetHead.TextureID
-            fakeMesh.Scale = Vector3.new(1, 1, 1)
-            fakeMesh.Parent = myHead
-        end
-
-        -- Chép PBR Texture (SurfaceAppearance) cho Dynamic Head
-        local targetSA = targetHead:FindFirstChildOfClass("SurfaceAppearance")
-        if targetSA then targetSA:Clone().Parent = myHead end
-
-        -- Chép Chuyển động mặt (FaceControls) cho Dynamic Head
-        local targetFC = targetHead:FindFirstChildOfClass("FaceControls")
-        if targetFC then targetFC:Clone().Parent = myHead end
-
-        -- Chép Khuôn mặt 2D (Decal) nếu có
-        local faceFound = false
-        for _, v in ipairs(targetHead:GetChildren()) do
-            if v:IsA("Decal") then
-                v:Clone().Parent = myHead
-                faceFound = true
+        local fakeHead = targetHead:Clone()
+        fakeHead.Name = "FakeHeadAvatarCopier"
+        fakeHead.CanCollide = false
+        fakeHead.Massless = true
+        
+        for _, v in ipairs(fakeHead:GetChildren()) do
+            if v:IsA("Motor6D") or v:IsA("Weld") or v:IsA("Script") or v:IsA("LocalScript") then
+                v:Destroy()
             end
         end
+
+        -- Gán trực tiếp thuộc tính lưới 3D và texture PBR thủ công
+        if targetHead:IsA("MeshPart") then
+            fakeHead.MeshId = targetHead.MeshId
+            fakeHead.TextureID = targetHead.TextureID
+            fakeHead.Color = targetHead.Color
+            fakeHead.Material = targetHead.Material
+            fakeHead.Size = targetHead.Size
+        end
+
+        local targetSA = targetHead:FindFirstChildOfClass("SurfaceAppearance")
+        if targetSA then
+            targetSA:Clone().Parent = fakeHead
+        end
+
+        local targetFC = targetHead:FindFirstChildOfClass("FaceControls")
+        if targetFC then
+            targetFC:Clone().Parent = fakeHead
+        end
+
+        fakeHead.Parent = char
+        fakeHead.CFrame = myHead.CFrame
+
+        local headWeld = Instance.new("Weld")
+        headWeld.Name = "FakeHeadWeld"
+        headWeld.Part0 = myHead
+        headWeld.Part1 = fakeHead
+        headWeld.C0 = CFrame.new(0, 0, 0)
+        headWeld.C1 = CFrame.new(0, 0, 0)
+        headWeld.Parent = fakeHead
         
-        -- Cấp mặt cười cơ bản nếu người kia không có cả 2D lẫn Dynamic
-        if not faceFound and not targetSA and not targetFC then
-            local df = Instance.new("Decal")
-            df.Name = "face"
-            df.Texture = "rbxasset://textures/face.png"
-            df.Parent = myHead
+        for _, att in ipairs(targetHead:GetChildren()) do
+            if att:IsA("Attachment") then
+                local myAtt = myHead:FindFirstChild(att.Name)
+                if myAtt then
+                    myAtt.CFrame = att.CFrame
+                else
+                    att:Clone().Parent = myHead
+                end
+            end
+        end
+    end
+
+    -- 5. SAO CHÉP TOÀN BỘ PHỤ KIỆN VÀ QUẦN ÁO
+    for _, item in ipairs(targetModel:GetChildren()) do
+        if item:IsA("Accessory") then
+            ForceWeldAccessory(char, item:Clone())
+        elseif item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("CharacterMesh") then
+            item:Clone().Parent = char
         end
     end
 
