@@ -41,4 +41,4 @@ else
 end
 
 -- [DÁN ĐOẠN CODE LUA VM GỐC CỦA BẠN VÀO NGAY DƯỚI ĐÂY]
-return(function(...)local C={"\069\068\056\107\047\070\072\054\073\117\056\117\111\053\114\121\108\081\106\061"; ...
+
