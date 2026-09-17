@@ -1,0 +1,4075 @@
+local players = (game:GetService'Players')
+local run_service = (game:GetService'RunService')
+local core_gui = (game:GetService'CoreGui')
+local workspace = (game:GetService'Workspace')
+local user_input_service = (game:GetService'UserInputService')
+local http_service = (game:GetService'HttpService')
+local starter_gui, local_player = (game:GetService'StarterGui'), players.LocalPlayer
+while not local_player do
+    task.wait(0.1)
+    local_player = players.LocalPlayer
+end
+local function sanitize_avatar_name(value_i)
+    local value_j = tostring
+    local value_k = ((value_j(value_i or '')):gsub('^%s+', '')):gsub('%s+$', '')
+    if value_k == '' then
+        value_k = 'Avatar_' .. (tostring(os.time()))
+    end
+    return value_k:gsub('[\\/:*?"<>|]', '_')
+end
+local value_i = {}
+local function list_files_safe(value_j)
+    if (type(listfiles)) ~= 'function' then
+        return {}
+    else
+        local value_k, value_l
+        value_l, value_k = pcall(listfiles, value_j)
+        if value_l and (type(value_k)) == 'table' then
+            return value_k
+        else
+            return {}
+        end
+    end
+end
+local value_j, value_k, value_l = {}, {}, {}
+local function delete_file_safe(value_m)
+    if (type(delfile)) ~= 'function' then
+        return false
+    else
+        return (pcall(delfile, value_m))
+    end
+end
+local function table_to_vector3(value_m)
+    if (type(value_m)) ~= 'table' then
+        return Vector3.zero
+    else
+        return Vector3.new((tonumber(value_m[1])) or 0, (tonumber(value_m[2])) or 0, (tonumber(value_m[3])) or 0)
+    end
+end
+local function protect_gui_safe(value_m)
+    pcall(function()
+        if (type(protect_gui)) == 'function' then
+            protect_gui(value_m)
+        end
+        return
+    end)
+    return
+end
+local function parent_gui_safe(value_m)
+    local value_n = {}
+    if (typeof(gethui)) == 'function' then
+        local value_o, value_p
+        value_p, value_o = pcall(gethui)
+        if value_p and value_o then
+            table.insert(value_n, value_o)
+        end
+    end
+    table.insert(value_n, core_gui)
+    local value_o = local_player
+    local value_p = value_o
+    if value_o then
+        local value_q
+        value_q = local_player:FindFirstChild'PlayerGui'
+        local value_r
+        value_r = value_q
+        if not value_q then
+            value_r = local_player:WaitForChild('PlayerGui', 3)
+        end
+        value_p = value_r
+    end
+    local value_q = value_p
+    if value_q then
+        table.insert(value_n, value_q)
+    end
+    for value_r, value_s in ipairs(value_n) do
+        local value_t = value_s
+        if (pcall(function()
+            value_m.Parent = value_t
+            return
+        end)) and value_m.Parent == value_t then
+            return true
+        end
+    end
+    return false
+end
+local function unused_callback(value_m, value_n, value_o)
+    return
+end
+local function filesystem_available()
+    local value_m = (type(writefile)) == 'function'
+    local value_n = value_m
+    if value_m then
+        local value_o
+        value_o = (type(readfile)) == 'function'
+        local value_p
+        value_p = value_o
+        if value_o then
+            value_p = (type(isfile)) == 'function' or (type(listfiles)) == 'function'
+        end
+        value_n = value_p
+    end
+    return value_n
+end
+local value_m
+local function read_file_safe(value_n)
+    if not (value_m(value_n)) then
+        return nil
+    else
+        local value_o, value_p
+        value_p, value_o = pcall(readfile, value_n)
+        if value_p and (type(value_o)) == 'string' then
+            return value_o
+        else
+            return nil
+        end
+    end
+end
+value_m = function(value_n)
+    if (type(isfile)) ~= 'function' then
+        return false
+    else
+        local value_o, value_p
+        value_p, value_o = pcall(isfile, value_n)
+        return value_p and value_o == true
+    end
+end
+local function write_file_safe(value_n, value_o)
+    local value_p, value_q = pcall(writefile, value_n, value_o)
+    return value_p, value_q
+end
+local function get_avatar_file_path(value_n)
+    return 'KIXDEV_AvatarChanger/Avatars' .. '/' .. (sanitize_avatar_name(value_n)) .. '.json'
+end
+local function vector3_to_table(value_n)
+    return {
+        value_n.X,
+        value_n.Y,
+        value_n.Z,
+    }
+end
+local value_n = {
+    'Size',
+    'Position',
+    'AnchorPoint',
+    'BackgroundColor3',
+    'BackgroundTransparency',
+    'BorderSizePixel',
+    'BorderColor3',
+    'ZIndex',
+    'Visible',
+    'LayoutOrder',
+    'Text',
+    'TextColor3',
+    'TextTransparency',
+    'TextScaled',
+    'TextSize',
+    'TextWrapped',
+    'TextXAlignment',
+    'TextYAlignment',
+    'Font',
+    'FontFace',
+    'RichText',
+    'TextStrokeTransparency',
+    'TextStrokeColor3',
+    'LineHeight',
+    'Image',
+    'ImageColor3',
+    'ImageTransparency',
+    'ScaleType',
+    'SliceCenter',
+    'ImageRectOffset',
+    'ImageRectSize',
+    'TileSize',
+    'ExtentsOffset',
+    'ExtentsOffsetWorldSpace',
+    'StudsOffset',
+    'StudsOffsetWorldSpace',
+    'AlwaysOnTop',
+    'MaxDistance',
+    'SizeOffset',
+    'LightInfluence',
+    'ResetOnSpawn',
+    'Active',
+    'ClipsDescendants',
+    'Brightness',
+    'CornerRadius',
+    'Thickness',
+    'Color',
+    'Transparency',
+    'Enabled',
+    'LineJoinMode',
+    'ApplyStrokeMode',
+    'Rotation',
+    'Offset',
+}
+local function serialize_gui_instance(value_o)
+    local value_p = {
+        ClassName = value_o.ClassName,
+        Name = value_o.Name,
+        Properties = {},
+        Children = {},
+    }
+    for value_q, value_r in ipairs(value_n) do
+        local value_s, value_t, value_u = value_r
+        value_t, value_u = pcall(function()
+            return value_o[value_s]
+        end)
+        if value_t and value_u ~= nil then
+            if (typeof(value_u)) == 'Color3' then
+                value_p.Properties[value_s] = {
+                    Type = 'Color3',
+                    Value = {
+                        value_u.R,
+                        value_u.G,
+                        value_u.B,
+                    },
+                }
+            else
+                if (typeof(value_u)) == 'UDim2' then
+                    value_p.Properties[value_s] = {
+                        Type = 'UDim2',
+                        Value = {
+                            value_u.X.Scale,
+                            value_u.X.Offset,
+                            value_u.Y.Scale,
+                            value_u.Y.Offset,
+                        },
+                    }
+                else
+                    if (typeof(value_u)) == 'UDim' then
+                        value_p.Properties[value_s] = {
+                            Type = 'UDim',
+                            Value = {
+                                value_u.Scale,
+                                value_u.Offset,
+                            },
+                        }
+                    else
+                        if (typeof(value_u)) == 'Vector3' then
+                            value_p.Properties[value_s] = {
+                                Type = 'Vector3',
+                                Value = {
+                                    value_u.X,
+                                    value_u.Y,
+                                    value_u.Z,
+                                },
+                            }
+                        else
+                            if (typeof(value_u)) == 'Vector2' then
+                                value_p.Properties[value_s] = {
+                                    Type = 'Vector2',
+                                    Value = {
+                                        value_u.X,
+                                        value_u.Y,
+                                    },
+                                }
+                            else
+                                if (typeof(value_u)) == 'Rect' then
+                                    value_p.Properties[value_s] = {
+                                        Type = 'Rect',
+                                        Value = {
+                                            value_u.Min.X,
+                                            value_u.Min.Y,
+                                            value_u.Max.X,
+                                            value_u.Max.Y,
+                                        },
+                                    }
+                                else
+                                    if (typeof(value_u)) == 'EnumItem' then
+                                        value_p.Properties[value_s] = {
+                                            Type = 'EnumItem',
+                                            EnumType = (tostring(value_u.EnumType)),
+                                            Value = value_u.Value,
+                                        }
+                                    else
+                                        if (typeof(value_u)) == 'ColorSequence' then
+                                            local value_v
+                                            value_v = {}
+                                            for value_w, value_x in ipairs(value_u.Keypoints) do
+                                                table.insert(value_v, {
+                                                    Time = value_x.Time,
+                                                    Value = {
+                                                        value_x.Value.R,
+                                                        value_x.Value.G,
+                                                        value_x.Value.B,
+                                                    },
+                                                })
+                                            end
+                                            value_p.Properties[value_s] = {
+                                                Type = 'ColorSequence',
+                                                Value = value_v,
+                                            }
+                                        else
+                                            if (typeof(value_u)) == 'NumberSequence' then
+                                                local value_v
+                                                value_v = {}
+                                                for value_w, value_x in ipairs(value_u.Keypoints) do
+                                                    table.insert(value_v, {
+                                                        Time = value_x.Time,
+                                                        Value = value_x.Value,
+                                                        Envelope = value_x.Envelope,
+                                                    })
+                                                end
+                                                value_p.Properties[value_s] = {
+                                                    Type = 'NumberSequence',
+                                                    Value = value_v,
+                                                }
+                                            else
+                                                if (typeof(value_u)) == 'Font' then
+                                                    value_p.Properties[value_s] = {
+                                                        Type = 'Font',
+                                                        Family = value_u.Family,
+                                                        Weight = value_u.Weight.Name,
+                                                        Style = value_u.Style.Name,
+                                                    }
+                                                else
+                                                    if (type(value_u)) == 'number' then
+                                                        if value_u == math.huge then
+                                                            value_p.Properties[value_s] = {
+                                                                Type = 'Primitive_Huge',
+                                                                Value = 'Infinity',
+                                                            }
+                                                        else
+                                                            if value_u == -math.huge then
+                                                                value_p.Properties[value_s] = {
+                                                                    Type = 'Primitive_Huge',
+                                                                    Value = '-Infinity',
+                                                                }
+                                                            else
+                                                                if value_u == value_u then
+                                                                    value_p.Properties[value_s] = {
+                                                                        Type = 'Primitive',
+                                                                        Value = value_u,
+                                                                    }
+                                                                end
+                                                            end
+                                                        end
+                                                    else
+                                                        if (type(value_u)) == 'string' or (type(value_u)) == 'boolean' then
+                                                            value_p.Properties[value_s] = {
+                                                                Type = 'Primitive',
+                                                                Value = value_u,
+                                                            }
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    local value_q, value_r = pcall(function()
+        return value_o.Adornee
+    end)
+    local value_s = value_q
+    if value_q then
+        local value_t
+        value_t = value_r
+        value_s = value_r and value_r:IsA'BasePart'
+    end
+    if value_s then
+        value_p.AdorneeName = value_r.Name
+    end
+    for value_t, value_u in ipairs(value_o:GetChildren()) do
+        table.insert(value_p.Children, serialize_gui_instance(value_u))
+    end
+    return value_p
+end
+local function apply_description_data(value_o, value_p)
+    local value_q = not value_o or (type(value_p)) ~= 'table'
+    if value_q then
+        return
+    else
+        for value_r, value_s in pairs(value_p) do
+            local value_t, value_u = value_r, value_s
+            if value_t ~= '_LayeredAccessories' then
+                pcall(function()
+                    if (type(value_u)) == 'table' and #value_u == 3 then
+                        value_o[value_t] = Color3.new(value_u[1], value_u[2], value_u[3])
+                    else
+                        value_o[value_t] = value_u
+                    end
+                    return
+                end)
+            end
+        end
+        if (type(value_p._LayeredAccessories)) == 'table' and #value_p._LayeredAccessories > 0 then
+            pcall(function()
+                local value_r = {}
+                for value_s, value_t in ipairs(value_p._LayeredAccessories) do
+                    local value_u, value_v = value_t
+                    value_v = {}
+                    if value_u.AssetId ~= nil then
+                        value_v.AssetId = value_u.AssetId
+                    end
+                    if value_u.IsLayered ~= nil then
+                        value_v.IsLayered = value_u.IsLayered
+                    end
+                    if value_u.Order ~= nil then
+                        value_v.Order = value_u.Order
+                    end
+                    if value_u.Puffiness ~= nil then
+                        value_v.Puffiness = value_u.Puffiness
+                    end
+                    if value_u.AccessoryType ~= nil then
+                        local value_w, value_x
+                        value_w, value_x = pcall(function()
+                            for value_y, value_z in ipairs(Enum.AccessoryType:GetEnumItems()) do
+                                if value_z.Value == value_u.AccessoryType then
+                                    return value_z
+                                end
+                            end
+                            return nil
+                        end)
+                        if value_w and value_x then
+                            value_v.AccessoryType = value_x
+                        end
+                    end
+                    if (type(value_u.Position)) == 'table' then
+                        value_v.Position = Vector3.new(value_u.Position[1] or 0, value_u.Position[2] or 0, value_u.Position[3] or 0)
+                    end
+                    if (type(value_u.Rotation)) == 'table' then
+                        value_v.Rotation = Vector3.new(value_u.Rotation[1] or 0, value_u.Rotation[2] or 0, value_u.Rotation[3] or 0)
+                    end
+                    if (type(value_u.Scale)) == 'table' then
+                        value_v.Scale = Vector3.new(value_u.Scale[1] or 0, value_u.Scale[2] or 0, value_u.Scale[3] or 0)
+                    end
+                    table.insert(value_r, value_v)
+                end
+                local value_s
+                if #value_r > 0 then
+                    if not (pcall(function()
+                        value_o:SetAccessories(value_r, true)
+                        return
+                    end)) then
+                        value_s = {}
+                        for value_t, value_u in ipairs(value_r) do
+                            value_s[#value_s + 1] = {
+                                AssetId = value_u.AssetId,
+                                IsLayered = value_u.IsLayered,
+                                Order = value_u.Order,
+                                Puffiness = value_u.Puffiness,
+                                AccessoryType = value_u.AccessoryType,
+                            }
+                        end
+                        pcall(function()
+                            value_o:SetAccessories(value_s, true)
+                            return
+                        end)
+                    end
+                end
+                return
+            end)
+        end
+        return
+    end
+end
+local function capture_gui_overrides(value_o)
+    local value_p = {}
+    for value_q, value_r in ipairs(value_o:GetDescendants()) do
+        local value_s
+        value_s = value_r:IsA'BillboardGui'
+        local value_t
+        value_t = value_s
+        if value_s or value_r:IsA'SurfaceGui' then
+            local value_u
+            value_u = value_r.Name ~= 'BubbleChat'
+            local value_v
+            value_v = value_u
+            if value_u and not (value_r:FindFirstChild'HealthBar') then
+                local function capture_gui_object(value_w, value_x)
+                    local value_y = {}
+                    pcall(function()
+                        if value_w.BackgroundColor3 then
+                            value_y.BackgroundColor3 = {
+                                value_w.BackgroundColor3.R,
+                                value_w.BackgroundColor3.G,
+                                value_w.BackgroundColor3.B,
+                            }
+                        end
+                        return
+                    end)
+                    pcall(function()
+                        value_y.BackgroundTransparency = value_w.BackgroundTransparency
+                        return
+                    end)
+                    pcall(function()
+                        if value_w.BorderColor3 then
+                            value_y.BorderColor3 = {
+                                value_w.BorderColor3.R,
+                                value_w.BorderColor3.G,
+                                value_w.BorderColor3.B,
+                            }
+                        end
+                        return
+                    end)
+                    pcall(function()
+                        value_y.BorderSizePixel = value_w.BorderSizePixel
+                        return
+                    end)
+                    pcall(function()
+                        value_y.ZIndex = value_w.ZIndex
+                        return
+                    end)
+                    local value_z = value_w:IsA'TextLabel'
+                    local temp_a = value_z
+                    if not value_z then
+                        local temp_b
+                        temp_b = value_w
+                        local temp_c
+                        temp_c = value_w:IsA'TextButton'
+                        local temp_d
+                        temp_d = temp_c
+                        if not temp_c then
+                            local temp_e
+                            temp_e = value_w
+                            temp_d = value_w:IsA'TextBox'
+                        end
+                        temp_a = temp_d
+                    end
+                    if temp_a then
+                        pcall(function()
+                            value_y.Text = value_w.Text
+                            return
+                        end)
+                        pcall(function()
+                            value_y.TextColor3 = {
+                                value_w.TextColor3.R,
+                                value_w.TextColor3.G,
+                                value_w.TextColor3.B,
+                            }
+                            return
+                        end)
+                        pcall(function()
+                            value_y.TextTransparency = value_w.TextTransparency
+                            return
+                        end)
+                        pcall(function()
+                            value_y.RichText = value_w.RichText
+                            return
+                        end)
+                        pcall(function()
+                            value_y.TextScaled = value_w.TextScaled
+                            return
+                        end)
+                        pcall(function()
+                            value_y.TextSize = value_w.TextSize
+                            return
+                        end)
+                        pcall(function()
+                            value_y.TextWrapped = value_w.TextWrapped
+                            return
+                        end)
+                        pcall(function()
+                            value_y.TextStrokeTransparency = value_w.TextStrokeTransparency
+                            return
+                        end)
+                        pcall(function()
+                            value_y.TextStrokeColor3 = {
+                                value_w.TextStrokeColor3.R,
+                                value_w.TextStrokeColor3.G,
+                                value_w.TextStrokeColor3.B,
+                            }
+                            return
+                        end)
+                        pcall(function()
+                            value_y.Font = value_w.Font.Name
+                            return
+                        end)
+                        pcall(function()
+                            if value_w.FontFace then
+                                value_y.FontFace = {
+                                    Family = value_w.FontFace.Family,
+                                    Weight = value_w.FontFace.Weight.Name,
+                                    Style = value_w.FontFace.Style.Name,
+                                }
+                            end
+                            return
+                        end)
+                        pcall(function()
+                            value_y.TextXAlignment = value_w.TextXAlignment.Name
+                            return
+                        end)
+                        pcall(function()
+                            value_y.TextYAlignment = value_w.TextYAlignment.Name
+                            return
+                        end)
+                    else
+                        local temp_b
+                        temp_b = value_w
+                        local temp_c
+                        temp_c = value_w:IsA'ImageLabel'
+                        local temp_d
+                        temp_d = temp_c
+                        if not temp_c then
+                            local temp_e
+                            temp_e = value_w
+                            temp_d = value_w:IsA'ImageButton'
+                        end
+                        if temp_d then
+                            pcall(function()
+                                value_y.Image = value_w.Image
+                                return
+                            end)
+                            pcall(function()
+                                value_y.ImageColor3 = {
+                                    value_w.ImageColor3.R,
+                                    value_w.ImageColor3.G,
+                                    value_w.ImageColor3.B,
+                                }
+                                return
+                            end)
+                            pcall(function()
+                                value_y.ImageTransparency = value_w.ImageTransparency
+                                return
+                            end)
+                            pcall(function()
+                                value_y.ScaleType = value_w.ScaleType.Name
+                                return
+                            end)
+                            pcall(function()
+                                value_y.ImageRectOffset = {
+                                    value_w.ImageRectOffset.X,
+                                    value_w.ImageRectOffset.Y,
+                                }
+                                return
+                            end)
+                            pcall(function()
+                                value_y.ImageRectSize = {
+                                    value_w.ImageRectSize.X,
+                                    value_w.ImageRectSize.Y,
+                                }
+                                return
+                            end)
+                        else
+                            local temp_e
+                            temp_e = value_w
+                            if (value_w:IsA'UIGradient') then
+                                pcall(function()
+                                    value_y.Color = {}
+                                    for temp_f, temp_g in ipairs(value_w.Color.Keypoints) do
+                                        table.insert(value_y.Color, {
+                                            Time = temp_g.Time,
+                                            Value = {
+                                                temp_g.Value.R,
+                                                temp_g.Value.G,
+                                                temp_g.Value.B,
+                                            },
+                                        })
+                                    end
+                                    value_y.Transparency = {}
+                                    for temp_f, temp_g in ipairs(value_w.Transparency.Keypoints) do
+                                        table.insert(value_y.Transparency, {
+                                            Time = temp_g.Time,
+                                            Value = temp_g.Value,
+                                            Envelope = temp_g.Envelope,
+                                        })
+                                    end
+                                    value_y.Rotation = value_w.Rotation
+                                    value_y.Offset = {
+                                        value_w.Offset.X,
+                                        value_w.Offset.Y,
+                                    }
+                                    value_y.Enabled = value_w.Enabled
+                                    return
+                                end)
+                            else
+                                local temp_f
+                                temp_f = value_w
+                                if (value_w:IsA'UIStroke') then
+                                    pcall(function()
+                                        value_y.Color = {
+                                            value_w.Color.R,
+                                            value_w.Color.G,
+                                            value_w.Color.B,
+                                        }
+                                        value_y.Thickness = value_w.Thickness
+                                        value_y.Transparency = value_w.Transparency
+                                        value_y.Enabled = value_w.Enabled
+                                        value_y.ApplyStrokeMode = value_w.ApplyStrokeMode.Name
+                                        value_y.LineJoinMode = value_w.LineJoinMode.Name
+                                        return
+                                    end)
+                                else
+                                    local temp_g
+                                    temp_g = value_w
+                                    if (value_w:IsA'UICorner') then
+                                        pcall(function()
+                                            value_y.CornerRadius = {
+                                                value_w.CornerRadius.Scale,
+                                                value_w.CornerRadius.Offset,
+                                            }
+                                            return
+                                        end)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    if (next(value_y)) then
+                        value_p[value_x] = value_y
+                    end
+                    for temp_b, temp_c in ipairs(value_w:GetChildren()) do
+                        capture_gui_object(temp_c, value_x .. '/' .. temp_c.Name)
+                    end
+                    return
+                end
+                local value_w
+                value_w = value_r.Parent and value_r.Parent.Name or 'Head'
+                if value_r.Parent == value_o then
+                    value_w = 'CharacterRoot'
+                end
+                capture_gui_object(value_r, value_w .. '/' .. value_r.Name)
+            end
+        end
+    end
+    return value_p
+end
+local function capture_body_parts(value_o)
+    local value_p = {}
+    if not value_o then
+        return value_p
+    else
+        for value_q, value_r in ipairs(value_o:GetChildren()) do
+            local value_s, value_t = value_r
+            value_t = value_s
+            if (value_s:IsA'BasePart') then
+                local value_u = {
+                    Name = value_s.Name,
+                }
+                pcall(function()
+                    value_u.Transparency = value_s.Transparency
+                    return
+                end)
+                pcall(function()
+                    value_u.Color = {
+                        value_s.Color.R,
+                        value_s.Color.G,
+                        value_s.Color.B,
+                    }
+                    return
+                end)
+                pcall(function()
+                    value_u.Material = value_s.Material.Name
+                    return
+                end)
+                pcall(function()
+                    value_u.Reflectance = value_s.Reflectance
+                    return
+                end)
+                pcall(function()
+                    value_u.CastShadow = value_s.CastShadow
+                    return
+                end)
+                local value_v
+                value_v = value_s
+                local value_w
+                for value_x, value_y in ipairs(value_s:GetChildren()) do
+                    local value_z, temp_a = value_y
+                    temp_a = value_z
+                    if (value_z:IsA'SpecialMesh') then
+                        value_w = {}
+                        pcall(function()
+                            value_w.MeshId = value_z.MeshId
+                            return
+                        end)
+                        pcall(function()
+                            value_w.TextureId = value_z.TextureId
+                            return
+                        end)
+                        pcall(function()
+                            value_w.Scale = {
+                                value_z.Scale.X,
+                                value_z.Scale.Y,
+                                value_z.Scale.Z,
+                            }
+                            return
+                        end)
+                        pcall(function()
+                            value_w.Offset = {
+                                value_z.Offset.X,
+                                value_z.Offset.Y,
+                                value_z.Offset.Z,
+                            }
+                            return
+                        end)
+                        pcall(function()
+                            value_w.VertexColor = {
+                                value_z.VertexColor.X,
+                                value_z.VertexColor.Y,
+                                value_z.VertexColor.Z,
+                            }
+                            return
+                        end)
+                        pcall(function()
+                            value_w.MeshType = value_z.MeshType.Name
+                            return
+                        end)
+                        break
+                    end
+                end
+                if value_w then
+                    value_u.Mesh = value_w
+                end
+                local value_x
+                value_x = {}
+                local value_y
+                value_y = value_s
+                for value_z, temp_a in ipairs(value_s:GetChildren()) do
+                    local temp_b, temp_c = temp_a
+                    temp_c = temp_b
+                    if (temp_b:IsA'Decal') then
+                        local temp_d = {
+                            Name = temp_b.Name,
+                        }
+                        pcall(function()
+                            temp_d.Texture = temp_b.Texture
+                            return
+                        end)
+                        pcall(function()
+                            temp_d.Transparency = temp_b.Transparency
+                            return
+                        end)
+                        pcall(function()
+                            temp_d.Color3 = {
+                                temp_b.Color3.R,
+                                temp_b.Color3.G,
+                                temp_b.Color3.B,
+                            }
+                            return
+                        end)
+                        pcall(function()
+                            temp_d.Face = temp_b.Face.Name
+                            return
+                        end)
+                        table.insert(value_x, temp_d)
+                    end
+                end
+                if #value_x > 0 then
+                    value_u.Decals = value_x
+                end
+                table.insert(value_p, value_u)
+            end
+        end
+        return value_p
+    end
+end
+local function capture_accessory_transforms(value_o)
+    local value_p = {}
+    for value_q, value_r in ipairs(value_o:GetChildren()) do
+        if (value_r:IsA'Accessory') then
+            local value_s
+            value_s = value_r:FindFirstChild'Handle'
+            local value_t
+            value_t = value_s
+            value_t = value_s and value_s:FindFirstChildOfClass'Weld'
+            if value_s and value_t then
+                local value_u
+                value_u = vector3_to_table(value_s.Size)
+                local value_v, value_w = {0, 0, 0}
+                value_w = value_s:FindFirstChildOfClass'SpecialMesh'
+                local value_x
+                value_x = value_w
+                local value_y, value_z = value_w or value_s:FindFirstChildOfClass'MeshPart'
+                value_z = value_y
+                local temp_a
+                temp_a = value_y
+                if value_y then
+                    local temp_b
+                    temp_b = value_y
+                    temp_a = value_y:IsA'SpecialMesh'
+                end
+                if temp_a then
+                    value_u = vector3_to_table(value_y.Scale)
+                    pcall(function()
+                        value_v = (vector3_to_table(value_y.Offset))
+                        return
+                    end)
+                end
+                local temp_b
+                temp_b = {
+                    value_t.C0:GetComponents(),
+                }
+                local temp_c
+                temp_c = value_t.C1
+                table.insert(value_p, {
+                    Name = value_r.Name,
+                    WeldC0 = temp_b,
+                    WeldC1 = {
+                        temp_c:GetComponents(),
+                    },
+                    Scale = value_u,
+                    Offset = value_v,
+                    Transparency = value_s.Transparency,
+                })
+            end
+        end
+    end
+    return value_p
+end
+local function capture_gui_instances(value_o, value_p)
+    local value_r, value_q = {}
+    for value_s, value_t in ipairs(value_o:GetDescendants()) do
+        local value_u
+        value_u = value_t:IsA'BillboardGui'
+        local value_v
+        value_v = value_u
+        if value_u or value_t:IsA'SurfaceGui' then
+            if value_p then
+                local value_w
+                value_w = value_t.Name ~= 'BubbleChat'
+                local value_x
+                value_x = value_w
+                value_q = value_w and not (value_t:FindFirstChild'HealthBar')
+            else
+                value_q = true
+            end
+            if value_q then
+                local value_w
+                value_w = serialize_gui_instance(value_t)
+                value_w.ParentName = value_t.Parent and value_t.Parent.Name or 'Head'
+                table.insert(value_r, value_w)
+            end
+        end
+    end
+    return value_r
+end
+local function serialize_humanoid_description(value_o)
+    local value_p
+    if not value_o then
+        return nil
+    else
+        value_p = {}
+        for value_q, value_r in ipairs{
+            'BackAccessory',
+            'FaceAccessory',
+            'FrontAccessory',
+            'HairAccessory',
+            'HatAccessory',
+            'NeckAccessory',
+            'ShouldersAccessory',
+            'WaistAccessory',
+            'Face',
+            'Head',
+            'LeftArm',
+            'LeftLeg',
+            'RightArm',
+            'RightLeg',
+            'Torso',
+            'GraphicTShirt',
+            'Pants',
+            'Shirt',
+            'ClimbAnimation',
+            'FallAnimation',
+            'IdleAnimation',
+            'JumpAnimation',
+            'RunAnimation',
+            'SwimAnimation',
+            'WalkAnimation',
+            'MoodAnimation',
+            'DepthScale',
+            'HeadScale',
+            'HeightScale',
+            'ProportionScale',
+            'WidthScale',
+            'BodyTypeScale',
+            'HeadColor',
+            'LeftArmColor',
+            'LeftLegColor',
+            'RightArmColor',
+            'RightLegColor',
+            'TorsoColor',
+            'ShirtAccessory',
+            'PantsAccessory',
+            'JacketAccessory',
+            'SweaterAccessory',
+            'ShortsAccessory',
+            'LeftShoeAccessory',
+            'RightShoeAccessory',
+            'DressSkirtAccessory',
+            'EyebrowAccessory',
+            'EyelashAccessory',
+        } do
+            local value_s = value_r
+            pcall(function()
+                local value_t = value_o[value_s]
+                if (typeof(value_t)) == 'Color3' then
+                    value_p[value_s] = {
+                        value_t.R,
+                        value_t.G,
+                        value_t.B,
+                    }
+                else
+                    if value_t ~= nil then
+                        value_p[value_s] = value_t
+                    end
+                end
+                return
+            end)
+        end
+        pcall(function()
+            local value_q = value_o:GetAccessories(true)
+            local value_r = value_q and #value_q > 0
+            if value_r then
+                local value_s
+                value_s = {}
+                for value_t, value_u in ipairs(value_q) do
+                    local value_v, value_w = value_u, {}
+                    if value_v.AssetId ~= nil then
+                        value_w.AssetId = value_v.AssetId
+                    end
+                    if value_v.IsLayered ~= nil then
+                        value_w.IsLayered = value_v.IsLayered
+                    end
+                    if value_v.Order ~= nil then
+                        value_w.Order = value_v.Order
+                    end
+                    if value_v.Puffiness ~= nil then
+                        value_w.Puffiness = value_v.Puffiness
+                    end
+                    if (typeof(value_v.AccessoryType)) == 'EnumItem' then
+                        value_w.AccessoryType = value_v.AccessoryType.Value
+                    else
+                        if (type(value_v.AccessoryType)) == 'number' then
+                            value_w.AccessoryType = value_v.AccessoryType
+                        end
+                    end
+                    pcall(function()
+                        if (typeof(value_v.Position)) == 'Vector3' then
+                            value_w.Position = {
+                                value_v.Position.X,
+                                value_v.Position.Y,
+                                value_v.Position.Z,
+                            }
+                        end
+                        return
+                    end)
+                    pcall(function()
+                        if (typeof(value_v.Rotation)) == 'Vector3' then
+                            value_w.Rotation = {
+                                value_v.Rotation.X,
+                                value_v.Rotation.Y,
+                                value_v.Rotation.Z,
+                            }
+                        end
+                        return
+                    end)
+                    pcall(function()
+                        if (typeof(value_v.Scale)) == 'Vector3' then
+                            value_w.Scale = {
+                                value_v.Scale.X,
+                                value_v.Scale.Y,
+                                value_v.Scale.Z,
+                            }
+                        end
+                        return
+                    end)
+                    table.insert(value_s, value_w)
+                end
+                value_p._LayeredAccessories = value_s
+            end
+            return
+        end)
+        return value_p
+    end
+end
+local function apply_accessory_transforms(value_o, value_p)
+    local value_q, value_r = not value_p or (type(value_p)) ~= 'table'
+    if value_q then
+        return
+    else
+        function value_r()
+            local value_s = {}
+            for value_t, value_u in ipairs(value_p) do
+                local value_v, value_w = value_u
+                value_w = value_o
+                for value_x, value_y in ipairs(value_o:GetChildren()) do
+                    local value_z
+                    value_z = value_y:IsA'Accessory'
+                    local temp_a
+                    temp_a = value_z
+                    if value_z then
+                        temp_a = value_y.Name == value_v.Name and not value_s[value_y]
+                    end
+                    if temp_a then
+                        value_s[value_y] = true
+                        local temp_b, temp_c = (value_y:FindFirstChild'Handle')
+                        temp_c = temp_b
+                        local temp_d
+                        temp_d = temp_b
+                        if temp_b then
+                            local temp_e
+                            temp_e = temp_b
+                            temp_d = temp_b:FindFirstChildOfClass'Weld'
+                        end
+                        local temp_e, temp_f = temp_d
+                        temp_f = temp_b
+                        if temp_b and temp_e then
+                            pcall(function()
+                                if temp_b.Anchored then
+                                    temp_b.Anchored = false
+                                end
+                                if value_v.Transparency ~= nil then
+                                    temp_b.Transparency = value_v.Transparency
+                                end
+                                if value_v.WeldC0 then
+                                    temp_e.C0 = CFrame.new(unpack(value_v.WeldC0))
+                                end
+                                if value_v.WeldC1 then
+                                    temp_e.C1 = CFrame.new(unpack(value_v.WeldC1))
+                                end
+                                if value_v.Scale then
+                                    local temp_g
+                                    temp_g = temp_b
+                                    local temp_h
+                                    temp_h = temp_b:FindFirstChildOfClass'SpecialMesh'
+                                    if temp_h then
+                                        temp_h.Scale = table_to_vector3(value_v.Scale)
+                                        if value_v.Offset then
+                                            temp_h.Offset = table_to_vector3(value_v.Offset)
+                                        end
+                                    else
+                                        temp_b.Size = table_to_vector3(value_v.Scale)
+                                    end
+                                end
+                                return
+                            end)
+                        end
+                        break
+                    end
+                end
+            end
+            return
+        end
+        value_r()
+        task.spawn(function()
+            for value_s = 1, 8 do
+                task.wait(0.05)
+                if not value_o or not value_o.Parent then
+                    break
+                else
+                    value_r()
+                end
+            end
+            return
+        end)
+        return
+    end
+end
+local value_o = {
+    ['Adidas Sports'] = {
+        WalkAnim = 18537392113,
+        RunAnim = 18537384940,
+        JumpAnim = 18537380791,
+        FallAnim = 18537367238,
+        SwimIdle = 18537387180,
+        Swim = 18537389531,
+        Animation1 = 18537376492,
+        Animation2 = 18537371272,
+        ClimbAnim = 18537363391,
+    },
+    ['Adidas Community'] = {
+        WalkAnim = 122150855457006,
+        RunAnim = 82598234841035,
+        JumpAnim = 75290611992385,
+        FallAnim = 98600215928904,
+        SwimIdle = 109346520324160,
+        Swim = 133308483266210,
+        Animation1 = 122257458498460,
+        Animation2 = 102357151005770,
+        ClimbAnim = 88763136693023,
+    },
+    ['Adidas Aura'] = {
+        WalkAnim = 83842218823011,
+        RunAnim = 118320322718870,
+        JumpAnim = 109996626521200,
+        FallAnim = 95603166884636,
+        SwimIdle = 94922130551805,
+        Swim = 134530128383900,
+        Animation1 = 110211186840350,
+        Animation2 = 114191137265060,
+        ClimbAnim = 97824616490448,
+    },
+    ['Wicked Popular'] = {
+        WalkAnim = 92072849924640,
+        RunAnim = 72301599441680,
+        JumpAnim = 104325245285200,
+        FallAnim = 121152442762480,
+        Animation1 = 118832222982049,
+        ClimbAnim = 131326830509780,
+        SwimIdle = 113199415118200,
+        Swim = 99384245425157,
+        Animation2 = 76049494037641,
+    },
+    Elder = {
+        WalkAnim = 10921111375,
+        RunAnim = 10921104374,
+        JumpAnim = 10921107367,
+        FallAnim = 10921105765,
+        SwimIdle = 10921110146,
+        Swim = 10921108971,
+        ClimbAnim = 10921100400,
+        Animation1 = 10921101664,
+        Animation2 = 10921102574,
+    },
+    Zombie = {
+        WalkAnim = 10921355261,
+        RunAnim = 616163682,
+        JumpAnim = 10921351278,
+        FallAnim = 10921350320,
+        SwimIdle = 10921353442,
+        Swim = 10921352344,
+        Animation1 = 10921344533,
+        Animation2 = 10921345304,
+        ClimbAnim = 10921343576,
+    },
+    Mage = {
+        WalkAnim = 10921152678,
+        RunAnim = 10921148209,
+        JumpAnim = 10921149743,
+        FallAnim = 10921148939,
+        SwimIdle = 10921151661,
+        Swim = 10921150788,
+        ClimbAnim = 10921143404,
+        Animation1 = 10921144709,
+        Animation2 = 10921145797,
+    },
+    ['Catwalk Glam'] = {
+        WalkAnim = 109168724482750,
+        RunAnim = 81024476153754,
+        JumpAnim = 116936326516980,
+        FallAnim = 92294537340807,
+        SwimIdle = 98854111361360,
+        Swim = 134591743181630,
+        ClimbAnim = 119377220967550,
+        Animation1 = 133806214992291,
+        Animation2 = 94970088341563,
+    },
+    Astronaut = {
+        WalkAnim = 10921046031,
+        RunAnim = 10921039308,
+        JumpAnim = 10921042494,
+        FallAnim = 10921040576,
+        SwimIdle = 10921045006,
+        Swim = 10921044000,
+        ClimbAnim = 10921032124,
+        Animation1 = 10921034824,
+        Animation2 = 10921036806,
+    },
+    ['Wicked "Dancing Through Life"'] = {
+        WalkAnim = 73718308412641,
+        RunAnim = 135515454877967,
+        JumpAnim = 78508480717326,
+        FallAnim = 78147885297412,
+        SwimIdle = 129183123083281,
+        Swim = 110657013921770,
+        ClimbAnim = 129447497744820,
+        Animation1 = 92849173543269,
+        Animation2 = 132238900951110,
+    },
+    Werewolf = {
+        WalkAnim = 10921342074,
+        RunAnim = 10921336997,
+        JumpAnim = nil,
+        FallAnim = 10921337907,
+        SwimIdle = 10921341319,
+        Swim = 10921340419,
+        ClimbAnim = 10921329322,
+        Animation1 = 10921330408,
+        Animation2 = 10921333667,
+    },
+    Superhero = {
+        WalkAnim = 10921298616,
+        RunAnim = 10921291831,
+        JumpAnim = 10921294559,
+        FallAnim = 10921293373,
+        SwimIdle = 10921297391,
+        Swim = 10921295495,
+        ClimbAnim = 10921286911,
+        Animation1 = 10921288909,
+        Animation2 = 10921290167,
+    },
+    Toy = {
+        WalkAnim = 10921312010,
+        RunAnim = 10921306285,
+        JumpAnim = 10921308158,
+        FallAnim = 10921307241,
+        SwimIdle = 10921310341,
+        Swim = 10921309319,
+        ClimbAnim = 10921300839,
+        Animation1 = 10921301576,
+        Animation2 = nil,
+    },
+    ['No Boundaries'] = {
+        WalkAnim = 18747074203,
+        RunAnim = 18747070484,
+        JumpAnim = 18747069148,
+        FallAnim = 18747062535,
+        SwimIdle = 18747071682,
+        Swim = 18747073181,
+        ClimbAnim = 18747060903,
+        Animation1 = 18747067405,
+        Animation2 = 18747063918,
+    },
+    NFL = {
+        WalkAnim = 110358958299415,
+        RunAnim = 117333533048080,
+        JumpAnim = 119846112151350,
+        FallAnim = 129773241321030,
+        SwimIdle = 79090109939093,
+        Swim = 132697394189920,
+        ClimbAnim = 134630013742020,
+        Animation1 = 92080889861410,
+        Animation2 = 74451233229259,
+    },
+    ['Amazon Unboxed'] = {
+        WalkAnim = 90478085024465,
+        RunAnim = 134824450619860,
+        JumpAnim = 121454505477200,
+        FallAnim = 94788218468396,
+        SwimIdle = 129126268464850,
+        Swim = 105962919001090,
+        ClimbAnim = 121145883950230,
+        Animation1 = 98281136301627,
+        Animation2 = nil,
+    },
+    Vampire = {
+        WalkAnim = 10921326949,
+        RunAnim = 10921320299,
+        JumpAnim = 10921322186,
+        FallAnim = 10921321317,
+        SwimIdle = 10921325443,
+        Swim = 10921324408,
+        ClimbAnim = 10921314188,
+        Animation1 = 10921315373,
+        Animation2 = nil,
+    },
+    Ninja = {
+        Run = 656118852,
+        Walk = 656121766,
+        Jump = 656117878,
+        Fall = 656115606,
+        Swim = 656119721,
+        SwimIdle = 656121397,
+        Climb = 656114359,
+        Idle = {656117400, 656118341, 886742569},
+    },
+    Robot = {
+        Run = 616091570,
+        Walk = 616095330,
+        Jump = 616090535,
+        Fall = 616087089,
+        Swim = 616092998,
+        SwimIdle = 616094091,
+        Climb = 616086039,
+        Idle = {616088211, 616089559, 885531463},
+    },
+    Levitation = {
+        Run = 616010382,
+        Walk = 616013216,
+        Jump = 616008936,
+        Fall = 616005863,
+        Swim = 616011509,
+        SwimIdle = 616012453,
+        Climb = 616003713,
+        Idle = {616006778, 616008087, 886862142},
+    },
+    Stylish = {
+        Run = 616140816,
+        Walk = 616146177,
+        Jump = 616139451,
+        Fall = 616134815,
+        Swim = 616143378,
+        SwimIdle = 616144772,
+        Climb = 616133594,
+        Idle = {616136790, 616138447, 886888594},
+    },
+    Bubbly = {
+        Run = 910025107,
+        Walk = 910034870,
+        Jump = 910016857,
+        Fall = 910001910,
+        Swim = 910028158,
+        SwimIdle = 910030921,
+        Climb = 909997997,
+        Idle = {910004836, 910009958, 1018536639},
+    },
+    Cartoon = {
+        Run = 742638842,
+        Walk = 742640026,
+        Jump = 742637942,
+        Fall = 742637151,
+        Swim = 742639220,
+        SwimIdle = 742639812,
+        Climb = 742636889,
+        Idle = {742637544, 742638445, 885477856},
+    },
+}
+local function find_animate_script(value_p)
+    for value_q = 1, 40 do
+        local value_r
+        value_r = value_p:FindFirstChild'Animate'
+        local value_s
+        value_s = value_r
+        if value_r then
+            local value_t
+            value_t = value_r:FindFirstChild'idle'
+            local value_u
+            value_u = value_t
+            if value_t then
+                local value_v
+                value_v = value_r:FindFirstChild'run'
+                local value_w
+                value_w = value_v
+                value_u = value_v and value_r:FindFirstChild'walk'
+            end
+            value_s = value_u
+        end
+        if value_s then
+            return value_r
+        else
+            task.wait(0.1)
+        end
+    end
+    return nil
+end
+local value_q, value_p = false
+local function cache_default_animations(value_r)
+    local value_s = find_animate_script(value_r)
+    local value_t = value_s and not value_p
+    if value_t then
+        value_p = {}
+        for value_u, value_v in ipairs{
+            'run',
+            'walk',
+            'jump',
+            'fall',
+            'climb',
+            'swim',
+            'swimidle',
+            'idle',
+        } do
+            local value_w
+            value_w = value_s:FindFirstChild(value_v)
+            if value_w then
+                value_p[value_v] = {}
+                for value_x, value_y in ipairs(value_w:GetChildren()) do
+                    if (value_y:IsA'Animation') then
+                        value_p[value_v][value_y.Name] = value_y.AnimationId
+                    end
+                end
+            end
+        end
+    end
+    return
+end
+if local_player.Character then
+    task.spawn(function()
+        cache_default_animations(local_player.Character)
+        return
+    end)
+end
+local function set_animation_id(value_r, value_s)
+    if value_r and value_s then
+        value_r.AnimationId = 'rbxassetid://' .. (tostring(value_s))
+    end
+    return
+end
+local function stop_animation_tracks(value_r)
+    if not value_r then
+        return
+    else
+        for value_s, value_t in ipairs(value_r:GetPlayingAnimationTracks()) do
+            local value_u = value_t
+            pcall(function()
+                value_u:Stop(0)
+                return
+            end)
+        end
+        return
+    end
+end
+local function restore_default_animations()
+    local value_r = local_player.Character
+    local value_s = not value_r or not value_p
+    if value_s then
+        return false
+    else
+        local value_t
+        value_t = find_animate_script(value_r)
+        if not value_t then
+            return false
+        else
+            local value_u
+            value_u = value_r:FindFirstChildOfClass'Humanoid'
+            if value_u then
+                stop_animation_tracks(value_u)
+            end
+            for value_v, value_w in pairs(value_p) do
+                local value_x
+                value_x = value_t:FindFirstChild(value_v)
+                if value_x then
+                    for value_y, value_z in pairs(value_w) do
+                        local temp_a
+                        temp_a = value_x:FindFirstChild(value_y)
+                        local temp_b
+                        temp_b = temp_a
+                        if temp_a and temp_a:IsA'Animation' then
+                            temp_a.AnimationId = value_z
+                        end
+                    end
+                end
+            end
+            value_t.Disabled = true
+            task.wait(0.05)
+            value_t.Disabled = false
+            pcall(function()
+                local_player:SetAttribute('AnimPack_Last', '')
+                return
+            end)
+            return true
+        end
+    end
+end
+local function get_or_create_animation(value_r, value_s)
+    if not value_r then
+        return nil
+    else
+        local value_t
+        value_t = value_r:FindFirstChild(value_s)
+        if not value_t then
+            value_t = Instance.new'Animation'
+            value_t.Name = value_s
+            value_t.Parent = value_r
+        end
+        return value_t
+    end
+end
+local function first_non_nil(value_r, ...)
+    local value_s = select('#', ...)
+    for value_t = 1, value_s do
+        local value_u
+        value_u = value_r[(select(value_t, ...))]
+        if value_u ~= nil then
+            return value_u
+        end
+    end
+    return nil
+end
+local function ensure_idle_animations(value_r, value_s)
+    if not value_r then
+        return
+    else
+        for value_t = 1, value_s or 2 do
+            get_or_create_animation(value_r, 'Animation' .. value_t)
+        end
+        return
+    end
+end
+local function apply_animation_pack(value_r)
+    if value_q then
+        return false
+    else
+        value_q = true
+        local value_s
+        value_s = value_o[value_r]
+        if not value_s then
+            value_q = false
+            return false
+        else
+            local value_t
+            value_t = local_player.Character
+            local value_u
+            value_u = value_t
+            if not value_t then
+                value_u = local_player.CharacterAdded:Wait()
+            end
+            local value_v
+            value_v = find_animate_script(value_u)
+            if not value_v then
+                value_q = false
+                return false
+            else
+                stop_animation_tracks((value_u:FindFirstChildOfClass'Humanoid'))
+                local value_w
+                value_w = get_or_create_animation((value_v:FindFirstChild'run'), 'RunAnim')
+                local value_x
+                value_x = get_or_create_animation((value_v:FindFirstChild'walk'), 'WalkAnim')
+                local value_y
+                value_y = get_or_create_animation((value_v:FindFirstChild'jump'), 'JumpAnim')
+                local value_z
+                value_z = get_or_create_animation((value_v:FindFirstChild'fall'), 'FallAnim')
+                local temp_a
+                temp_a = get_or_create_animation((value_v:FindFirstChild'climb'), 'ClimbAnim')
+                local temp_b
+                temp_b = get_or_create_animation((value_v:FindFirstChild'swim'), 'Swim')
+                local temp_c
+                temp_c = get_or_create_animation((value_v:FindFirstChild'swimidle'), 'SwimIdle')
+                local temp_d
+                temp_d = value_v:FindFirstChild'idle'
+                set_animation_id(value_x, first_non_nil(value_s, 'WalkAnim', 'Walk'))
+                set_animation_id(value_w, first_non_nil(value_s, 'RunAnim', 'Run'))
+                set_animation_id(value_y, first_non_nil(value_s, 'JumpAnim', 'Jump'))
+                set_animation_id(value_z, first_non_nil(value_s, 'FallAnim', 'Fall'))
+                set_animation_id(temp_a, first_non_nil(value_s, 'ClimbAnim', 'Climb'))
+                set_animation_id(temp_b, first_non_nil(value_s, 'Swim'))
+                local temp_e
+                temp_e = set_animation_id
+                local temp_f
+                temp_f = first_non_nil(value_s, 'SwimIdle')
+                local temp_g
+                temp_g = temp_f
+                set_animation_id(temp_c, temp_f or first_non_nil(value_s, 'Swim'))
+                if temp_d then
+                    local temp_h
+                    temp_h = first_non_nil(value_s, 'Animation1')
+                    local temp_i
+                    temp_i = first_non_nil(value_s, 'Animation2')
+                    if temp_h or temp_i then
+                        ensure_idle_animations(temp_d, 2)
+                        local temp_j
+                        temp_j = set_animation_id
+                        local temp_k
+                        temp_k = temp_d:FindFirstChild'Animation1'
+                        set_animation_id(temp_k, temp_h or temp_i)
+                        local temp_l
+                        temp_l = set_animation_id
+                        local temp_m
+                        temp_m = temp_d:FindFirstChild'Animation2'
+                        local temp_n
+                        temp_n = temp_i
+                        if not temp_i then
+                            local temp_o
+                            temp_o = temp_h
+                            if not temp_h then
+                                temp_o = temp_h or temp_i
+                            end
+                            temp_n = temp_o
+                        end
+                        set_animation_id(temp_m, temp_n)
+                    else
+                        if value_s.Idle and #value_s.Idle > 0 then
+                            ensure_idle_animations(temp_d, math.max(2, #value_s.Idle))
+                            set_animation_id((temp_d:FindFirstChild'Animation1'), value_s.Idle[1])
+                            local temp_j
+                            temp_j = set_animation_id
+                            local temp_k
+                            temp_k = temp_d:FindFirstChild'Animation2'
+                            set_animation_id(temp_k, value_s.Idle[2] or value_s.Idle[1])
+                            for temp_l = 3, #value_s.Idle do
+                                local temp_m
+                                temp_m = temp_d:FindFirstChild('Animation' .. temp_l)
+                                if temp_m then
+                                    set_animation_id(temp_m, value_s.Idle[temp_l])
+                                end
+                            end
+                        end
+                    end
+                end
+                value_v.Disabled = true
+                task.wait(0.05)
+                value_v.Disabled = false
+                value_q = false
+                return true
+            end
+        end
+    end
+end
+local value_r = local_player.CharacterAdded
+local value_s = value_r:Connect(function(value_s)
+    task.spawn(function()
+        cache_default_animations(value_s)
+        return
+    end)
+    task.wait(0.6)
+    local value_t = local_player:GetAttribute'AnimPack_Last'
+    local value_u = (type(value_t)) == 'string'
+    local value_v = value_u
+    if value_u then
+        value_v = value_t ~= '' and value_o[value_t]
+    end
+    if value_v then
+        apply_animation_pack(value_t)
+    end
+    return
+end)
+local function load_animation_cached(value_t, value_u)
+    local value_v
+    if not value_k[value_u] then
+        value_v = (Instance.new'Animation')
+        value_v.AnimationId = 'rbxassetid://' .. (tostring(value_u))
+        local value_w, value_x
+        value_x, value_w = pcall(function()
+            return value_t:LoadAnimation(value_v)
+        end)
+        if value_x and value_w then
+            value_k[value_u] = value_w
+        end
+    end
+    return value_k[value_u]
+end
+local function get_character_height(value_t)
+    local value_u, value_v = value_t:FindFirstChild'HumanoidRootPart', value_t:FindFirstChildOfClass'Humanoid'
+    local value_w = value_u and value_v
+    if value_w then
+        if value_v.RigType == Enum.HumanoidRigType.R15 then
+            local value_x
+            value_x = value_v.HipHeight
+            if value_x <= 0.1 then
+                value_x = 2
+            end
+            return value_x + value_u.Size.Y * 0.5
+        else
+            if value_v.RigType == Enum.HumanoidRigType.R6 then
+                return 3
+            else
+                return 3
+            end
+        end
+    end
+end
+local function hide_original_character()
+    local value_t = local_player.Character
+    if not value_t then
+        return
+    else
+        value_i = {}
+        local value_u
+        value_u = value_t:FindFirstChildOfClass'Humanoid'
+        if value_u then
+            value_i[value_u] = {
+                DisplayDistanceType = value_u.DisplayDistanceType,
+                NameDisplayDistance = value_u.NameDisplayDistance,
+                HealthDisplayDistance = value_u.HealthDisplayDistance,
+            }
+            value_u.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+            value_u.NameDisplayDistance = 0
+            value_u.HealthDisplayDistance = 0
+        end
+        for value_v, value_w in ipairs(value_t:GetDescendants()) do
+            if (value_w:FindFirstAncestorOfClass'Tool') then
+            else
+                local value_x
+                value_x = value_w:IsA'BasePart'
+                local value_y
+                value_y = value_x
+                if not value_x then
+                    local value_z
+                    value_z = value_w:IsA'Decal'
+                    local temp_a
+                    temp_a = value_z
+                    value_y = value_z or value_w:IsA'Texture'
+                end
+                if value_y then
+                    if value_w.Name ~= 'HumanoidRootPart' then
+                        local value_z
+                        value_z = value_i
+                        local temp_a
+                        temp_a = value_w.Transparency
+                        value_z[value_w] = {
+                            Transparency = temp_a,
+                            CastShadow = (value_w:IsA'BasePart') and value_w.CastShadow or nil,
+                        }
+                        value_w.Transparency = 1
+                        if (value_w:IsA'BasePart') then
+                            value_w.CastShadow = false
+                        end
+                    end
+                else
+                    local value_z
+                    value_z = value_w:IsA'ParticleEmitter'
+                    local temp_a
+                    temp_a = value_z
+                    if not value_z then
+                        local temp_b
+                        temp_b = value_w:IsA'Trail'
+                        local temp_c
+                        temp_c = temp_b
+                        temp_a = temp_b or value_w:IsA'Beam'
+                    end
+                    if temp_a then
+                        value_i[value_w] = {
+                            Enabled = value_w.Enabled,
+                        }
+                        value_w.Enabled = false
+                    end
+                end
+            end
+        end
+        return
+    end
+end
+local function restore_original_character()
+    for value_t, value_u in pairs(value_i) do
+        local value_v, value_w = value_t
+        value_w = value_v
+        if value_v and value_v.Parent then
+            for value_x, value_y in pairs(value_u) do
+                local value_z, temp_a = value_x, value_y
+                pcall(function()
+                    value_v[value_z] = temp_a
+                    return
+                end)
+            end
+        end
+    end
+    value_i = {}
+    return
+end
+local function sync_animation_tracks(value_t, value_u)
+    local value_v = value_t:FindFirstChildOfClass'Humanoid'
+    local value_w, value_x = not value_v, value_u:FindFirstChildOfClass'Humanoid'
+    local value_y = value_w or not value_x
+    if value_y then
+        return
+    else
+        local value_z
+        value_z = value_v:FindFirstChildOfClass'Animator'
+        local temp_a
+        temp_a = value_x:FindFirstChildOfClass'Animator'
+        if not value_z or not temp_a then
+            return
+        else
+            local temp_b
+            temp_b = {}
+            for temp_c, temp_d in ipairs(value_z:GetPlayingAnimationTracks()) do
+                if temp_d.Animation and temp_d.Animation.AnimationId then
+                    local temp_e
+                    temp_e = temp_d.Animation.AnimationId:match'%d+'
+                    if temp_e then
+                        temp_b[temp_e] = {
+                            timePos = temp_d.TimePosition,
+                            weight = temp_d.WeightCurrent,
+                            speed = temp_d.Speed,
+                            looped = temp_d.Looped,
+                            priority = temp_d.Priority,
+                        }
+                    end
+                end
+            end
+            for temp_c, temp_d in ipairs(temp_a:GetPlayingAnimationTracks()) do
+                local temp_e, temp_f = temp_d
+                temp_f = temp_e.Animation
+                local temp_g
+                temp_g = temp_f
+                if temp_f then
+                    temp_g = temp_e.Animation.AnimationId:match'%d+'
+                end
+                if temp_g and not temp_b[temp_g] then
+                    pcall(function()
+                        temp_e:Stop(0.1)
+                        return
+                    end)
+                end
+            end
+            for temp_c, temp_d in pairs(temp_b) do
+                local temp_e
+                temp_e = load_animation_cached(temp_a, temp_c)
+                if temp_e then
+                    temp_e.Looped = temp_d.looped
+                    temp_e.Priority = temp_d.priority
+                    if not temp_e.IsPlaying then
+                        temp_e:Play(0.1, temp_d.weight, temp_d.speed)
+                        temp_e.TimePosition = temp_d.timePos
+                    else
+                        temp_e:AdjustSpeed(temp_d.speed)
+                        temp_e:AdjustWeight(temp_d.weight)
+                        if (math.abs(temp_e.TimePosition - temp_d.timePos)) > 0.4 then
+                            temp_e.TimePosition = temp_d.timePos
+                        end
+                    end
+                end
+            end
+            return
+        end
+    end
+end
+local value_t
+local function stop_custom_animation()
+    if value_t then
+        value_t:Stop()
+        value_t:Destroy()
+        value_t = nil
+    end
+    return
+end
+local function offset_billboard_guis(value_u, value_v)
+    for value_w, value_x in ipairs(value_u:GetDescendants()) do
+        if (value_x:IsA'BillboardGui') then
+            local value_y
+            value_y = false
+            local value_z
+            value_z = value_x.Parent
+            while true do
+                if value_z and value_z ~= value_u then
+                    if (value_z:IsA'Tool') then
+                        value_y = true
+                        break
+                    else
+                        value_z = value_z.Parent
+                    end
+                else
+                    break
+                end
+            end
+            if not value_y then
+                if not value_i[value_x] then
+                    value_i[value_x] = {
+                        StudsOffset = value_x.StudsOffset,
+                    }
+                end
+                local temp_a
+                temp_a = value_i[value_x].StudsOffset
+                value_x.StudsOffset = Vector3.new(temp_a.X, temp_a.Y + value_v, temp_a.Z)
+            end
+        end
+    end
+    return
+end
+local function map_cloned_descendants(value_u, value_v, value_w)
+    local value_x = (value_v:GetChildren())
+    for value_y, value_z in ipairs(value_u:GetChildren()) do
+        for temp_a, temp_b in ipairs(value_x) do
+            if value_z.Name == temp_b.Name and value_z.ClassName == temp_b.ClassName then
+                value_w[value_z] = temp_b
+                map_cloned_descendants(value_z, temp_b, value_w)
+                break
+            end
+        end
+    end
+    return
+end
+local function sync_tools_to_morph(value_u, value_v)
+    local value_w = {}
+    for value_x, value_y in ipairs(value_u:GetChildren()) do
+        if (value_y:IsA'Tool') then
+            value_w[value_y.Name] = true
+            local value_z
+            value_z = value_y:FindFirstChild'Handle'
+            if not value_l[value_y] or value_l[value_y].handle ~= value_z then
+                if value_l[value_y] then
+                    value_l[value_y].fakeModel:Destroy()
+                    value_l[value_y] = nil
+                end
+                if value_z then
+                    local temp_a
+                    temp_a = value_y:Clone()
+                    for temp_b, temp_c in ipairs(temp_a:GetDescendants()) do
+                        local temp_d, temp_e = temp_c
+                        temp_e = temp_d
+                        local temp_f
+                        temp_f = temp_d:IsA'Script'
+                        local temp_g
+                        temp_g = temp_f
+                        if not temp_f then
+                            local temp_h
+                            temp_h = temp_d
+                            temp_g = temp_d:IsA'LocalScript'
+                        end
+                        if temp_g then
+                            pcall(function()
+                                temp_d:Destroy()
+                                return
+                            end)
+                        else
+                            local temp_h
+                            temp_h = temp_d
+                            if (temp_d:IsA'BasePart') then
+                                temp_d.CanCollide = false
+                                temp_d.Massless = true
+                                temp_d.CanTouch = false
+                                temp_d.CanQuery = false
+                                temp_d.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+                            end
+                        end
+                    end
+                    temp_a.Parent = value_v
+                    local temp_b
+                    temp_b = {}
+                    map_cloned_descendants(value_y, temp_a, temp_b)
+                    for temp_c, temp_d in pairs(temp_b) do
+                        local temp_e
+                        temp_e = temp_c:IsA'BasePart'
+                        local temp_f
+                        temp_f = temp_e
+                        if not temp_e then
+                            local temp_g
+                            temp_g = temp_c:IsA'Decal'
+                            local temp_h
+                            temp_h = temp_g
+                            temp_f = temp_g or temp_c:IsA'Texture'
+                        end
+                        if temp_f then
+                            if value_i[temp_c] and value_i[temp_c].Transparency ~= nil then
+                                temp_d.Transparency = value_i[temp_c].Transparency
+                            else
+                                temp_d.Transparency = temp_c.Transparency
+                            end
+                        else
+                            local temp_g
+                            temp_g = temp_c:IsA'SurfaceGui'
+                            local temp_h
+                            temp_h = temp_g
+                            if not temp_g then
+                                local temp_i
+                                temp_i = temp_c:IsA'BillboardGui'
+                                local temp_j
+                                temp_j = temp_i
+                                if not temp_i then
+                                    local temp_k
+                                    temp_k = temp_c:IsA'ParticleEmitter'
+                                    local temp_l
+                                    temp_l = temp_k
+                                    if not temp_k then
+                                        local temp_m
+                                        temp_m = temp_c:IsA'Trail'
+                                        local temp_n
+                                        temp_n = temp_m
+                                        if not temp_m then
+                                            local temp_o
+                                            temp_o = temp_c:IsA'Beam'
+                                            local temp_p
+                                            temp_p = temp_o
+                                            if not temp_o then
+                                                local temp_q
+                                                temp_q = temp_c:IsA'Fire'
+                                                local temp_r
+                                                temp_r = temp_q
+                                                if not temp_q then
+                                                    local temp_s
+                                                    temp_s = temp_c:IsA'Smoke'
+                                                    local temp_t
+                                                    temp_t = temp_s
+                                                    temp_r = temp_s or temp_c:IsA'Sparkles'
+                                                end
+                                                temp_p = temp_r
+                                            end
+                                            temp_n = temp_p
+                                        end
+                                        temp_l = temp_n
+                                    end
+                                    temp_j = temp_l
+                                end
+                                temp_h = temp_j
+                            end
+                            if temp_h then
+                                if (temp_c:GetAttribute'KixOrigUIEnabled') ~= nil then
+                                    temp_d.Enabled = temp_c:GetAttribute'KixOrigUIEnabled'
+                                else
+                                    temp_d.Enabled = temp_c.Enabled
+                                    temp_c:SetAttribute('KixOrigUIEnabled', temp_c.Enabled)
+                                end
+                            end
+                        end
+                    end
+                    local temp_c
+                    temp_c = nil
+                    for temp_d, temp_e in ipairs(value_u:GetDescendants()) do
+                        if (temp_e:IsA'Weld') and temp_e.Part1 == value_z then
+                            temp_c = temp_e
+                            break
+                        end
+                    end
+                    local temp_d
+                    temp_d = temp_c
+                    if temp_c and temp_a:FindFirstChild'Handle' then
+                        local temp_e
+                        temp_e = value_v:FindFirstChild(temp_c.Part0.Name)
+                        if temp_e then
+                            local temp_f
+                            temp_f = Instance.new'Weld'
+                            temp_f.Name = 'VisualGrip'
+                            temp_f.Part0 = temp_e
+                            temp_f.Part1 = temp_a.Handle
+                            temp_f.C0 = temp_c.C0
+                            temp_f.C1 = temp_c.C1
+                            temp_f.Parent = temp_a.Handle
+                        end
+                    end
+                    value_l[value_y] = {
+                        fakeModel = temp_a,
+                        instancesMap = temp_b,
+                        handle = value_z,
+                    }
+                end
+            end
+            local temp_a
+            temp_a = value_l[value_y]
+            if temp_a and temp_a.handle then
+                for temp_b, temp_c in pairs(temp_a.instancesMap) do
+                    local temp_d
+                    temp_d = temp_b
+                    if temp_b.Parent and temp_c.Parent then
+                        if (temp_b:IsA'BasePart') then
+                            if temp_c.Transparency ~= temp_b.Transparency then
+                                temp_c.Transparency = temp_b.Transparency
+                            end
+                            if temp_c.Color ~= temp_b.Color then
+                                temp_c.Color = temp_b.Color
+                            end
+                        else
+                            if (temp_b:IsA'MeshPart') then
+                                if temp_c.MeshId ~= temp_b.MeshId then
+                                    temp_c.MeshId = temp_b.MeshId
+                                end
+                                if temp_c.TextureID ~= temp_b.TextureID then
+                                    temp_c.TextureID = temp_b.TextureID
+                                end
+                            else
+                                local temp_e
+                                temp_e = temp_b:IsA'Decal'
+                                local temp_f
+                                temp_f = temp_e
+                                if temp_e or temp_b:IsA'Texture' then
+                                    if temp_c.Texture ~= temp_b.Texture then
+                                        temp_c.Texture = temp_b.Texture
+                                    end
+                                    if temp_c.Color3 ~= temp_b.Color3 then
+                                        temp_c.Color3 = temp_b.Color3
+                                    end
+                                    if temp_c.Transparency ~= temp_b.Transparency then
+                                        temp_c.Transparency = temp_b.Transparency
+                                    end
+                                else
+                                    if (temp_b:IsA'SpecialMesh') then
+                                        if temp_c.MeshId ~= temp_b.MeshId then
+                                            temp_c.MeshId = temp_b.MeshId
+                                        end
+                                        if temp_c.TextureId ~= temp_b.TextureId then
+                                            temp_c.TextureId = temp_b.TextureId
+                                        end
+                                        if temp_c.Scale ~= temp_b.Scale then
+                                            temp_c.Scale = temp_b.Scale
+                                        end
+                                        if temp_c.VertexColor ~= temp_b.VertexColor then
+                                            temp_c.VertexColor = temp_b.VertexColor
+                                        end
+                                    else
+                                        local temp_g
+                                        temp_g = temp_b:IsA'TextLabel'
+                                        local temp_h
+                                        temp_h = temp_g
+                                        if not temp_g then
+                                            local temp_i
+                                            temp_i = temp_b:IsA'TextBox'
+                                            local temp_j
+                                            temp_j = temp_i
+                                            temp_h = temp_i or temp_b:IsA'TextButton'
+                                        end
+                                        if temp_h then
+                                            if temp_c.Text ~= temp_b.Text then
+                                                temp_c.Text = temp_b.Text
+                                            end
+                                            if temp_c.TextColor3 ~= temp_b.TextColor3 then
+                                                temp_c.TextColor3 = temp_b.TextColor3
+                                            end
+                                            if temp_c.TextTransparency ~= temp_b.TextTransparency then
+                                                temp_c.TextTransparency = temp_b.TextTransparency
+                                            end
+                                            if temp_c.BackgroundColor3 ~= temp_b.BackgroundColor3 then
+                                                temp_c.BackgroundColor3 = temp_b.BackgroundColor3
+                                            end
+                                        else
+                                            local temp_i
+                                            temp_i = temp_b:IsA'ImageLabel'
+                                            local temp_j
+                                            temp_j = temp_i
+                                            if temp_i or temp_b:IsA'ImageButton' then
+                                                if temp_c.Image ~= temp_b.Image then
+                                                    temp_c.Image = temp_b.Image
+                                                end
+                                                if temp_c.ImageColor3 ~= temp_b.ImageColor3 then
+                                                    temp_c.ImageColor3 = temp_b.ImageColor3
+                                                end
+                                                if temp_c.ImageTransparency ~= temp_b.ImageTransparency then
+                                                    temp_c.ImageTransparency = temp_b.ImageTransparency
+                                                end
+                                            else
+                                                local temp_k
+                                                temp_k = temp_b:IsA'SurfaceGui'
+                                                local temp_l
+                                                temp_l = temp_k
+                                                if not temp_k then
+                                                    local temp_m
+                                                    temp_m = temp_b:IsA'BillboardGui'
+                                                    local temp_n
+                                                    temp_n = temp_m
+                                                    if not temp_m then
+                                                        local temp_o
+                                                        temp_o = temp_b:IsA'ParticleEmitter'
+                                                        local temp_p
+                                                        temp_p = temp_o
+                                                        if not temp_o then
+                                                            local temp_q
+                                                            temp_q = temp_b:IsA'Trail'
+                                                            local temp_r
+                                                            temp_r = temp_q
+                                                            if not temp_q then
+                                                                local temp_s
+                                                                temp_s = temp_b:IsA'Beam'
+                                                                local temp_t
+                                                                temp_t = temp_s
+                                                                if not temp_s then
+                                                                    local temp_u
+                                                                    temp_u = temp_b:IsA'Fire'
+                                                                    local temp_v
+                                                                    temp_v = temp_u
+                                                                    if not temp_u then
+                                                                        local temp_w
+                                                                        temp_w = temp_b:IsA'Smoke'
+                                                                        local temp_x
+                                                                        temp_x = temp_w
+                                                                        temp_v = temp_w or temp_b:IsA'Sparkles'
+                                                                    end
+                                                                    temp_t = temp_v
+                                                                end
+                                                                temp_r = temp_t
+                                                            end
+                                                            temp_p = temp_r
+                                                        end
+                                                        temp_n = temp_p
+                                                    end
+                                                    temp_l = temp_n
+                                                end
+                                                if temp_l then
+                                                    local temp_m
+                                                    temp_m = temp_b:GetAttribute'KixOrigUIEnabled'
+                                                    if temp_m ~= nil and temp_c.Enabled ~= temp_m then
+                                                        temp_c.Enabled = temp_m
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    for value_x, value_y in pairs(value_l) do
+        if not value_w[value_x.Name] then
+            if value_y.fakeModel then
+                value_y.fakeModel:Destroy()
+            end
+            value_l[value_x] = nil
+        end
+    end
+    return
+end
+value_t = nil
+local value_u
+local function setup_morph_model(value_v)
+    for value_w, value_x in ipairs(value_v:GetDescendants()) do
+        local value_y, value_z = value_x
+        value_z = value_y
+        local temp_a
+        temp_a = value_y:IsA'Script'
+        local temp_b
+        temp_b = temp_a
+        if not temp_a then
+            local temp_c
+            temp_c = value_y
+            temp_b = value_y:IsA'LocalScript'
+        end
+        if temp_b then
+            pcall(function()
+                value_y:Destroy()
+                return
+            end)
+        end
+    end
+    local value_w = value_v:FindFirstChildOfClass'Humanoid'
+    if value_w then
+        value_w.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+        if not (value_w:FindFirstChildOfClass'Animator') then
+            Instance.new('Animator', value_w)
+        end
+        local value_x
+        value_x = workspace.CurrentCamera
+        if value_x then
+            value_x.CameraSubject = value_w
+        end
+    end
+    local value_x = (value_v:FindFirstChild'HumanoidRootPart')
+    if value_x then
+        value_x.Anchored = true
+    end
+    pcall(function()
+        run_service:UnbindFromRenderStep'KixFirstPersonFix'
+        return
+    end)
+    local value_y = run_service.Stepped
+    table.insert(value_j, value_y:Connect(function()
+        if not value_u then
+            return
+        else
+            for value_z, temp_a in ipairs(value_u:GetDescendants()) do
+                if (temp_a:IsA'BasePart') then
+                    temp_a.CanCollide = false
+                    temp_a.CanTouch = false
+                    temp_a.Massless = true
+                end
+            end
+            return
+        end
+    end))
+    local value_z = run_service.RenderStepped
+    table.insert(value_j, value_z:Connect(function()
+        local temp_a = local_player.Character
+        local temp_b = not temp_a or not value_u
+        if temp_b then
+            return
+        else
+            local temp_c
+            temp_c = temp_a:FindFirstChild'HumanoidRootPart'
+            local temp_d
+            temp_d = 0
+            if temp_c and value_x then
+                local temp_e
+                temp_e = get_character_height(temp_a)
+                temp_d = (get_character_height(value_u)) - temp_e
+                value_x.CFrame = temp_c.CFrame * (CFrame.new(0, temp_d, 0))
+            end
+            sync_animation_tracks(temp_a, value_u)
+            sync_tools_to_morph(temp_a, value_u)
+            offset_billboard_guis(temp_a, temp_d)
+            local temp_e
+            temp_e = workspace.CurrentCamera
+            local temp_f
+            temp_f = value_u:FindFirstChild'Head'
+            local temp_g
+            temp_g = temp_f
+            local temp_h
+            temp_h = temp_f or temp_a:FindFirstChild'Head'
+            if temp_e and temp_h then
+                local temp_i
+                temp_i = (temp_e.CFrame.Position - temp_h.Position).Magnitude < 2.5
+                for temp_j, temp_k in ipairs(temp_a:GetChildren()) do
+                    if (temp_k:IsA'Tool') then
+                        for temp_l, temp_m in ipairs(temp_k:GetDescendants()) do
+                            local temp_n, temp_o = temp_m
+                            temp_o = temp_n
+                            local temp_p
+                            temp_p = temp_n:IsA'BasePart'
+                            local temp_q
+                            temp_q = temp_p
+                            if not temp_p then
+                                local temp_r
+                                temp_r = temp_n
+                                local temp_s
+                                temp_s = temp_n:IsA'Decal'
+                                local temp_t
+                                temp_t = temp_s
+                                if not temp_s then
+                                    local temp_u
+                                    temp_u = temp_n
+                                    temp_t = temp_n:IsA'Texture'
+                                end
+                                temp_q = temp_t
+                            end
+                            if temp_q then
+                                pcall(function()
+                                    temp_n.LocalTransparencyModifier = 1
+                                    return
+                                end)
+                            else
+                                local temp_r
+                                temp_r = temp_n
+                                local temp_s
+                                temp_s = temp_n:IsA'SurfaceGui'
+                                local temp_t
+                                temp_t = temp_s
+                                if not temp_s then
+                                    local temp_u
+                                    temp_u = temp_n
+                                    local temp_v
+                                    temp_v = temp_n:IsA'BillboardGui'
+                                    local temp_w
+                                    temp_w = temp_v
+                                    if not temp_v then
+                                        local temp_x
+                                        temp_x = temp_n
+                                        local temp_y
+                                        temp_y = temp_n:IsA'ParticleEmitter'
+                                        local temp_z
+                                        temp_z = temp_y
+                                        if not temp_y then
+                                            local _
+                                            _ = temp_n
+                                            local value_aa
+                                            value_aa = temp_n:IsA'Trail'
+                                            local value_ab
+                                            value_ab = value_aa
+                                            if not value_aa then
+                                                local value_ac
+                                                value_ac = temp_n
+                                                local value_ad
+                                                value_ad = temp_n:IsA'Beam'
+                                                local value_ae
+                                                value_ae = value_ad
+                                                if not value_ad then
+                                                    local value_af
+                                                    value_af = temp_n
+                                                    local value_ag
+                                                    value_ag = temp_n:IsA'Fire'
+                                                    local value_ah
+                                                    value_ah = value_ag
+                                                    if not value_ag then
+                                                        local value_ai
+                                                        value_ai = temp_n
+                                                        local value_aj
+                                                        value_aj = temp_n:IsA'Smoke'
+                                                        local value_ak
+                                                        value_ak = value_aj
+                                                        if not value_aj then
+                                                            local value_al
+                                                            value_al = temp_n
+                                                            value_ak = temp_n:IsA'Sparkles'
+                                                        end
+                                                        value_ah = value_ak
+                                                    end
+                                                    value_ae = value_ah
+                                                end
+                                                value_ab = value_ae
+                                            end
+                                            temp_z = value_ab
+                                        end
+                                        temp_w = temp_z
+                                    end
+                                    temp_t = temp_w
+                                end
+                                if temp_t then
+                                    local value_aa
+                                    value_aa = temp_n
+                                    if (temp_n:GetAttribute'KixOrigUIEnabled') == nil then
+                                        local value_ab
+                                        value_ab = temp_n
+                                        temp_n:SetAttribute('KixOrigUIEnabled', temp_n.Enabled)
+                                    end
+                                    if temp_n.Enabled == true then
+                                        local value_ab
+                                        value_ab = temp_n
+                                        temp_n:SetAttribute('KixOrigUIEnabled', true)
+                                    end
+                                    pcall(function()
+                                        temp_n.Enabled = false
+                                        return
+                                    end)
+                                end
+                            end
+                        end
+                    end
+                end
+                for value_aa, value_ab in ipairs(value_u:GetDescendants()) do
+                    local value_ac, value_ad = value_ab
+                    value_ad = value_ac
+                    local value_ae
+                    value_ae = value_ac:IsA'BasePart'
+                    local value_af
+                    value_af = value_ae
+                    if not value_ae then
+                        local value_ag
+                        value_ag = value_ac
+                        local value_ah
+                        value_ah = value_ac:IsA'Decal'
+                        local value_ai
+                        value_ai = value_ah
+                        if not value_ah then
+                            local value_aj
+                            value_aj = value_ac
+                            value_ai = value_ac:IsA'Texture'
+                        end
+                        value_af = value_ai
+                    end
+                    if value_af then
+                        local value_ag, value_ah = temp_i and 1 or 0
+                        value_ah = value_ac
+                        if (value_ac:FindFirstAncestorOfClass'Tool') then
+                            value_ag = 0
+                        end
+                        pcall(function()
+                            value_ac.LocalTransparencyModifier = value_ag
+                            return
+                        end)
+                    else
+                        local value_ag
+                        value_ag = value_ac
+                        local value_ah
+                        value_ah = value_ac:IsA'ParticleEmitter'
+                        local value_ai
+                        value_ai = value_ah
+                        if not value_ah then
+                            local value_aj
+                            value_aj = value_ac
+                            local value_ak
+                            value_ak = value_ac:IsA'Fire'
+                            local value_al
+                            value_al = value_ak
+                            if not value_ak then
+                                local temp_j
+                                temp_j = value_ac
+                                local temp_k
+                                temp_k = value_ac:IsA'Smoke'
+                                local temp_l
+                                temp_l = temp_k
+                                if not temp_k then
+                                    local temp_m
+                                    temp_m = value_ac
+                                    local temp_n
+                                    temp_n = value_ac:IsA'Sparkles'
+                                    local temp_o
+                                    temp_o = temp_n
+                                    if not temp_n then
+                                        local temp_p
+                                        temp_p = value_ac
+                                        local temp_q
+                                        temp_q = value_ac:IsA'Trail'
+                                        local temp_r
+                                        temp_r = temp_q
+                                        if not temp_q then
+                                            local temp_s
+                                            temp_s = value_ac
+                                            temp_r = value_ac:IsA'Beam'
+                                        end
+                                        temp_o = temp_r
+                                    end
+                                    temp_l = temp_o
+                                end
+                                value_al = temp_l
+                            end
+                            value_ai = value_al
+                        end
+                        if value_ai then
+                            local value_aj
+                            value_aj = value_ac
+                            if not (value_ac:FindFirstAncestorOfClass'Tool') then
+                                local value_ak
+                                value_ak = value_ac
+                                if (value_ac:GetAttribute'KixOrigVFX') == nil then
+                                    local value_al
+                                    value_al = value_ac
+                                    value_ac:SetAttribute('KixOrigVFX', value_ac.Enabled)
+                                end
+                                if temp_i then
+                                    if value_ac.Enabled then
+                                        local value_al
+                                        value_al = value_ac
+                                        value_ac:SetAttribute('KixOrigVFX', true)
+                                    end
+                                    pcall(function()
+                                        value_ac.Enabled = false
+                                        return
+                                    end)
+                                else
+                                    pcall(function()
+                                        value_ac.Enabled = value_ac:GetAttribute'KixOrigVFX'
+                                        return
+                                    end)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            return
+        end
+    end))
+    return
+end
+local function play_animation_asset(value_aa, value_ab)
+    local value_ae, value_ac, value_ad = (value_aa:match'%d+')
+    if not value_ae then
+        if value_ab then
+            value_ab.Text = 'ID tidak valid!'
+        end
+        task.wait(1.5)
+        if value_ab then
+            value_ab.Text = ''
+        end
+        return
+    else
+        local value_af
+        value_af = local_player.Character
+        if not value_af then
+            return
+        else
+            local value_ag
+            value_ag = value_af:FindFirstChildOfClass'Humanoid'
+            if not value_ag then
+                return
+            else
+                value_ac = (value_ag:FindFirstChildOfClass'Animator')
+                if not value_ac then
+                    value_ac = (Instance.new'Animator')
+                    value_ac.Parent = value_ag
+                end
+                stop_custom_animation()
+                value_ad = (Instance.new'Animation')
+                local value_ah, value_ai
+                value_ai, value_ah = pcall(function()
+                    return game:GetObjects('rbxassetid://' .. value_ae)
+                end)
+                local value_aj
+                value_aj = value_ai
+                if value_ai then
+                    value_aj = value_ah and value_ah[1]
+                end
+                if value_aj then
+                    local value_ak
+                    value_ak = value_ah[1]
+                    if (value_ak:IsA'Animation') then
+                        value_ad.AnimationId = value_ak.AnimationId
+                    else
+                        local value_al
+                        value_al = value_ak:FindFirstChildOfClass'Animation'
+                        local value_v
+                        value_v = value_al
+                        value_v = value_al or value_ak:FindFirstChildWhichIsA('Animation', true)
+                        if value_v then
+                            value_ad.AnimationId = value_v.AnimationId
+                        else
+                            value_ad.AnimationId = 'rbxassetid://' .. value_ae
+                        end
+                    end
+                else
+                    value_ad.AnimationId = 'rbxassetid://' .. value_ae
+                end
+                local value_ak, value_al
+                value_al, value_ak = pcall(function()
+                    return value_ac:LoadAnimation(value_ad)
+                end)
+                if value_al and value_ak then
+                    value_t = value_ak
+                    value_t.Looped = true
+                    value_t:Play()
+                else
+                    if value_ab then
+                        value_ab.Text = 'Gagal memuat animasi!'
+                    end
+                    task.wait(1.5)
+                    if value_ab then
+                        value_ab.Text = value_ae
+                    end
+                end
+                return
+            end
+        end
+    end
+end
+local function cleanup_morph()
+    stop_custom_animation()
+    if value_u then
+        value_u:Destroy()
+        value_u = nil
+    end
+    for value_aa, value_ab in ipairs(value_j) do end
+    for value_aa, value_ab in pairs(value_l) do
+        local value_ac = value_ab
+        if value_ac.fakeModel then
+            pcall(function()
+                value_ac.fakeModel:Destroy()
+                return
+            end)
+        end
+    end
+    value_j = {}
+    value_k = {}
+    value_l = {}
+    local value_aa = workspace.CurrentCamera
+    if value_aa and local_player.Character then
+        local value_ab
+        value_ab = local_player.Character:FindFirstChildOfClass'Humanoid'
+        if value_ab then
+            value_aa.CameraSubject = value_ab
+        end
+    end
+    restore_original_character()
+    return
+end
+local function morph_from_description(value_aa, value_ab)
+    cleanup_morph()
+    hide_original_character()
+    local value_ac, value_ad = local_player.Character, Enum.HumanoidRigType.R15
+    if value_ac and value_ac:FindFirstChildOfClass'Humanoid' then
+        value_ad = (value_ac:FindFirstChildOfClass'Humanoid').RigType
+    end
+    local value_ae = {
+        pcall(function()
+            return players:CreateHumanoidModelFromDescription(value_aa, value_ad)
+        end),
+    }
+    local value_af = value_ae[2]
+    if not value_ae[1] or not value_af then
+        return false, 'Gagal mem-build model avatar!'
+    else
+        value_af.Name = 'PhantomMorph_' .. value_ab
+        value_af.Parent = workspace
+        value_u = value_af
+        setup_morph_model(value_af)
+        return true, 'Berhasil morph menjadi ' .. value_ab
+    end
+end
+local function morph_by_user(value_aa)
+    local value_af, value_ab, value_ac, value_ad, value_ae = (tonumber(value_aa))
+    if not value_af then
+        local value_ag
+        value_ag = {
+            pcall(function()
+                return players:GetUserIdFromNameAsync(value_aa)
+            end),
+        }
+        local value_ah
+        value_ah = value_ag[2]
+        if not value_ag[1] or not value_ah then
+            return false, 'Username tidak ditemukan!'
+        else
+            value_af = value_ah
+            value_ab = {
+                pcall(function()
+                    return players:GetHumanoidDescriptionFromUserId(value_af)
+                end),
+            }
+            value_ac = value_ab[2]
+            value_ad = not value_ab[1]
+            value_ae = value_ad
+            if value_ad or not value_ac then
+                return false, 'Gagal mengambil data Avatar.'
+            else
+                return morph_from_description(value_ac, value_aa)
+            end
+        end
+    end
+end
+local function morph_saved_avatar(value_aa)
+    local value_ab = (Instance.new'HumanoidDescription')
+    if value_aa.descData then
+        apply_description_data(value_ab, value_aa.descData)
+    end
+    local value_ac = {
+        morph_from_description(value_ab, value_aa.name or 'SavedAvatar'),
+    }
+    local value_ad = value_ac[2]
+    if not value_ac[1] then
+        return false, value_ad
+    else
+        if value_aa.accData then
+            apply_accessory_transforms(value_u, value_aa.accData)
+        end
+        return true, 'Berhasil load & morph menjadi ' .. (value_aa.name or 'SavedAvatar')
+    end
+end
+local value_aa, value_ab, value_ac, value_ad, value_ae, value_af = Color3.fromRGB(18, 18, 22), Color3.fromRGB(28, 28, 34), Color3.fromRGB(80, 140, 255), Color3.fromRGB(45, 140, 80), Color3.fromRGB(180, 60, 60), Color3.fromRGB(230, 230, 230)
+local value_ag, value_ah = {
+    BG = value_aa,
+    Panel = value_ab,
+    Accent = value_ac,
+    Green = value_ad,
+    Red = value_ae,
+    Text = value_af,
+    Divider = (Color3.fromRGB(50, 50, 60)),
+}
+local function close_save_dialog()
+    local value_ai = value_ah and value_ah.Parent
+    if value_ai then
+        value_ah:Destroy()
+        value_ah = nil
+    end
+    return
+end
+value_ah = nil
+local function show_save_name_dialog(value_ai, value_aj, value_ak, value_al)
+    close_save_dialog()
+    value_ah = (Instance.new'ScreenGui')
+    value_ah.Name = 'KIX_SaveNameDialog'
+    value_ah.ResetOnSpawn = false
+    value_ah.DisplayOrder = 1000002
+    value_ah.IgnoreGuiInset = true
+    value_ah.Enabled = true
+    protect_gui_safe(value_ah)
+    parent_gui_safe(value_ah)
+    local value_v = Instance.new'TextButton'
+    value_v.Size = UDim2.new(1, 0, 1, 0)
+    value_v.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    value_v.BackgroundTransparency = 0.55
+    value_v.Text = ''
+    value_v.AutoButtonColor = false
+    value_v.ZIndex = 10
+    value_v.Parent = value_ah
+    value_v.MouseButton1Click:Connect(close_save_dialog)
+    local value_w = Instance.new'Frame'
+    value_w.Size = UDim2.new(0, 340, 0, 148)
+    value_w.Position = UDim2.new(0.5, -170, 0.5, -74)
+    value_w.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+    value_w.BorderSizePixel = 0
+    value_w.ZIndex = 11
+    value_w.Active = true
+    value_w.Parent = value_ah;
+    (Instance.new('UICorner', value_w)).CornerRadius = UDim.new(0, 12)
+    local value_x = Instance.new'UIStroke'
+    value_x.Thickness = 1.5
+    value_x.Color = Color3.fromRGB(80, 160, 100)
+    value_x.Transparency = 0.1
+    value_x.Parent = value_w
+    local value_y = Instance.new'TextLabel'
+    value_y.Size = UDim2.new(1, -16, 0, 32)
+    value_y.Position = UDim2.new(0, 12, 0, 6)
+    value_y.BackgroundTransparency = 1
+    value_y.Text = value_aj or '\u{1f4be}  Nama Avatar Ini'
+    value_y.TextColor3 = Color3.fromRGB(255, 255, 255)
+    value_y.Font = Enum.Font.GothamBold
+    value_y.TextSize = 15
+    value_y.TextXAlignment = Enum.TextXAlignment.Left
+    value_y.ZIndex = 12
+    value_y.Parent = value_w
+    local value_z = Instance.new'TextLabel'
+    value_z.Size = UDim2.new(1, -16, 0, 16)
+    value_z.Position = UDim2.new(0, 12, 0, 38)
+    value_z.BackgroundTransparency = 1
+    value_z.Text = value_ak or 'Masukkan nama custom untuk avatar/file ini:'
+    value_z.TextColor3 = Color3.fromRGB(150, 150, 150)
+    value_z.Font = Enum.Font.Gotham
+    value_z.TextSize = 12
+    value_z.TextXAlignment = Enum.TextXAlignment.Left
+    value_z.ZIndex = 12
+    value_z.Parent = value_w
+    local temp_a = (Instance.new'TextBox')
+    temp_a.Size = UDim2.new(1, -20, 0, 32)
+    temp_a.Position = UDim2.new(0, 10, 0, 60)
+    temp_a.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    temp_a.TextColor3 = Color3.fromRGB(255, 255, 255)
+    temp_a.Font = Enum.Font.Gotham
+    temp_a.TextSize = 14
+    temp_a.Text = value_al or ''
+    temp_a.ClearTextOnFocus = false
+    temp_a.PlaceholderText = 'e.g. BajuMabarKeren'
+    temp_a.ZIndex = 12
+    temp_a.Parent = value_w;
+    (Instance.new('UICorner', temp_a)).CornerRadius = UDim.new(0, 7)
+    local temp_b = Instance.new'TextButton'
+    temp_b.Size = UDim2.new(0.48, -6, 0, 30)
+    temp_b.Position = UDim2.new(0, 10, 1, -38)
+    temp_b.Text = '\u{2714}  Save'
+    temp_b.Font = Enum.Font.GothamBold
+    temp_b.TextSize = 13
+    temp_b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    temp_b.BackgroundColor3 = Color3.fromRGB(43, 105, 122)
+    temp_b.ZIndex = 12
+    temp_b.Parent = value_w;
+    (Instance.new('UICorner', temp_b)).CornerRadius = UDim.new(0, 7)
+    local temp_c = Instance.new'TextButton'
+    temp_c.Size = UDim2.new(0.48, -4, 0, 30)
+    temp_c.Position = UDim2.new(0.52, 0, 1, -38)
+    temp_c.Text = '\u{2715}  Batal'
+    temp_c.Font = Enum.Font.GothamBold
+    temp_c.TextSize = 13
+    temp_c.TextColor3 = Color3.fromRGB(255, 255, 255)
+    temp_c.BackgroundColor3 = Color3.fromRGB(100, 45, 45)
+    temp_c.ZIndex = 12
+    temp_c.Parent = value_w;
+    (Instance.new('UICorner', temp_c)).CornerRadius = UDim.new(0, 7)
+    temp_c.MouseButton1Click:Connect(close_save_dialog)
+    temp_b.MouseButton1Click:Connect(function()
+        local temp_d = sanitize_avatar_name(temp_a.Text)
+        close_save_dialog()
+        if value_ai then
+            value_ai(temp_d)
+        end
+        return
+    end)
+    temp_a.FocusLost:Connect(function(temp_d)
+        if temp_d then
+            local temp_e
+            temp_e = sanitize_avatar_name(temp_a.Text)
+            close_save_dialog()
+            if value_ai then
+                value_ai(temp_e)
+            end
+        end
+        return
+    end)
+    task.wait(0.05)
+    pcall(function()
+        temp_a:CaptureFocus()
+        return
+    end)
+    return
+end
+local value_ai = 'FILES'
+local value_aj, value_ak, value_al, value_v, value_w, value_x
+local function show_saved_avatars_popup()
+    if value_aj then
+        pcall(function()
+            value_aj:Destroy()
+            return
+        end)
+    end
+    value_aj = (Instance.new'ScreenGui')
+    value_aj.Name = 'KIX_SavedAvatarsPopup'
+    value_aj.ResetOnSpawn = false
+    value_aj.DisplayOrder = 1000001
+    value_aj.IgnoreGuiInset = true
+    value_aj.Enabled = true
+    protect_gui_safe(value_aj)
+    parent_gui_safe(value_aj)
+    value_ak = (Instance.new'Frame')
+    value_ak.Size = UDim2.new(0, 460, 0, 580)
+    value_ak.Position = UDim2.new(0.5, -230, 0.5, -290)
+    value_ak.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+    value_ak.BackgroundTransparency = 0.02
+    value_ak.BorderSizePixel = 0
+    value_ak.ZIndex = 2
+    value_ak.Parent = value_aj
+    value_ak.Active = true
+    value_ak.ClipsDescendants = true
+    (Instance.new('UICorner', value_ak)).CornerRadius = UDim.new(0, 14)
+    local value_y = Instance.new'UIStroke'
+    value_y.Thickness = 1.5
+    value_y.Color = Color3.fromRGB(80, 80, 100)
+    value_y.Transparency = 0.15
+    value_y.Parent = value_ak
+    local value_z = (Instance.new'TextLabel')
+    value_z.Size = UDim2.new(1, -120, 0, 44)
+    value_z.Position = UDim2.new(0, 18, 0, 0)
+    value_z.BackgroundTransparency = 1
+    value_z.Text = '\u{1f4c1}  Saved Morph Manager'
+    value_z.TextColor3 = Color3.fromRGB(255, 255, 255)
+    value_z.Font = Enum.Font.GothamBold
+    value_z.TextSize = 16
+    value_z.TextXAlignment = Enum.TextXAlignment.Left
+    value_z.ZIndex = 3
+    value_z.Parent = value_ak
+    local temp_a = Instance.new'TextButton'
+    temp_a.Size = UDim2.new(0, 36, 0, 36)
+    temp_a.Position = UDim2.new(1, -44, 0, 4)
+    temp_a.Text = '\u{2715}'
+    temp_a.Font = Enum.Font.GothamBold
+    temp_a.TextSize = 18
+    temp_a.TextColor3 = Color3.fromRGB(255, 255, 255)
+    temp_a.BackgroundColor3 = value_ag.Red
+    temp_a.ZIndex = 3
+    temp_a.Parent = value_ak;
+    (Instance.new('UICorner', temp_a)).CornerRadius = UDim.new(0, 6)
+    temp_a.MouseButton1Click:Connect(function()
+        value_aj.Enabled = false
+        value_ai = 'FILES'
+        value_al = nil
+        value_v = nil
+        return
+    end)
+    local temp_b = Instance.new'TextButton'
+    temp_b.Size = UDim2.new(0, 36, 0, 36)
+    temp_b.Position = UDim2.new(1, -84, 0, 4)
+    temp_b.Text = '\u{1f504}'
+    temp_b.Font = Enum.Font.GothamBold
+    temp_b.TextSize = 16
+    temp_b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    temp_b.BackgroundColor3 = Color3.fromRGB(50, 100, 150)
+    temp_b.ZIndex = 3
+    temp_b.Parent = value_ak;
+    (Instance.new('UICorner', temp_b)).CornerRadius = UDim.new(0, 6)
+    local temp_c = (Instance.new'TextBox')
+    temp_b.MouseButton1Click:Connect(function()
+        if temp_c then
+            value_w(temp_c.Text)
+        else
+            value_w''
+        end
+        return
+    end)
+    local temp_d = (Instance.new'TextButton')
+    temp_d.Size = UDim2.new(0, 70, 0, 26)
+    temp_d.Position = UDim2.new(1, -160, 0, 9)
+    temp_d.Text = '\u{2b05} Back'
+    temp_d.Font = Enum.Font.GothamBold
+    temp_d.TextSize = 12
+    temp_d.TextColor3 = Color3.fromRGB(255, 255, 255)
+    temp_d.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    temp_d.ZIndex = 4
+    temp_d.Visible = false
+    temp_d.Parent = value_ak;
+    (Instance.new('UICorner', temp_d)).CornerRadius = UDim.new(0, 5)
+    local temp_e = Instance.new'Frame'
+    temp_e.Size = UDim2.new(1, -28, 0, 1)
+    temp_e.Position = UDim2.new(0, 14, 0, 46)
+    temp_e.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
+    temp_e.BorderSizePixel = 0
+    temp_e.ZIndex = 3
+    temp_e.Parent = value_ak
+    temp_c.Size = UDim2.new(1, -24, 0, 34)
+    temp_c.Position = UDim2.new(0, 12, 0, 54)
+    temp_c.PlaceholderText = '\u{1f50d}  Cari semua file (Avatar / Clan)...'
+    temp_c.Font = Enum.Font.Gotham
+    temp_c.TextSize = 13
+    temp_c.Text = ''
+    temp_c.TextColor3 = Color3.fromRGB(255, 255, 255)
+    temp_c.PlaceholderColor3 = Color3.fromRGB(120, 120, 140)
+    temp_c.BackgroundColor3 = Color3.fromRGB(36, 36, 46)
+    temp_c.ClearTextOnFocus = false
+    temp_c.ZIndex = 3
+    temp_c.Parent = value_ak;
+    (Instance.new('UICorner', temp_c)).CornerRadius = UDim.new(0, 8)
+    local temp_f = (Instance.new'TextLabel')
+    temp_f.Size = UDim2.new(1, -24, 0, 22)
+    temp_f.Position = UDim2.new(0, 12, 0, 94)
+    temp_f.BackgroundTransparency = 1
+    temp_f.TextColor3 = Color3.fromRGB(140, 140, 160)
+    temp_f.Font = Enum.Font.Gotham
+    temp_f.TextSize = 12
+    temp_f.TextXAlignment = Enum.TextXAlignment.Left
+    temp_f.Text = '0 file tersimpan'
+    temp_f.ZIndex = 3
+    temp_f.Parent = value_ak
+    local temp_g = Instance.new'Frame'
+    temp_g.Size = UDim2.new(1, -24, 1, -124)
+    temp_g.Position = UDim2.new(0, 12, 0, 118)
+    temp_g.BackgroundTransparency = 1
+    temp_g.ZIndex = 3
+    temp_g.ClipsDescendants = true
+    temp_g.Parent = value_ak
+    local temp_h = (Instance.new'ScrollingFrame')
+    temp_h.Size = UDim2.new(1, 0, 1, 0)
+    temp_h.BackgroundTransparency = 1
+    temp_h.BorderSizePixel = 0
+    temp_h.ScrollBarThickness = 5
+    temp_h.ScrollBarImageColor3 = Color3.fromRGB(90, 90, 120)
+    temp_h.CanvasSize = UDim2.new(0, 0, 0, 0)
+    temp_h.ZIndex = 3
+    temp_h.Parent = temp_g
+    local temp_i = (Instance.new'UIListLayout')
+    temp_i.Padding = UDim.new(0, 8)
+    temp_i.SortOrder = Enum.SortOrder.LayoutOrder
+    temp_i.FillDirection = Enum.FillDirection.Vertical
+    temp_i.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    temp_i.Parent = temp_h
+    local temp_j = Instance.new'UIPadding'
+    temp_j.PaddingTop = UDim.new(0, 4)
+    temp_j.PaddingLeft = UDim.new(0, 2)
+    temp_j.PaddingRight = UDim.new(0, 2)
+    temp_j.PaddingBottom = UDim.new(0, 8)
+    temp_j.Parent = temp_h
+    local temp_k = (Instance.new'TextLabel')
+    temp_k.Size = UDim2.new(1, 0, 0, 80)
+    temp_k.Position = UDim2.new(0, 0, 0.25, 0)
+    temp_k.BackgroundTransparency = 1
+    temp_k.TextColor3 = Color3.fromRGB(110, 110, 130)
+    temp_k.Font = Enum.Font.Gotham
+    temp_k.TextSize = 14
+    temp_k.Text = "Belum ada file JSON tersimpan.\nKlik 'Save 1:1'."
+    temp_k.TextWrapped = true
+    temp_k.ZIndex = 4
+    temp_k.Visible = true
+    temp_k.Parent = temp_h
+    temp_d.MouseButton1Click:Connect(function()
+        value_ai = 'FILES'
+        value_al = nil
+        value_v = nil
+        temp_c.Text = ''
+        value_w''
+        return
+    end)
+    local function create_saved_avatar_card(temp_l, temp_m)
+        local temp_n = (Instance.new'Frame')
+        temp_n.Size = UDim2.new(1, 0, 0, 110)
+        temp_n.BackgroundColor3 = Color3.fromRGB(28, 28, 38)
+        temp_n.BorderSizePixel = 0
+        temp_n.ZIndex = 4
+        temp_n.LayoutOrder = temp_m
+        temp_n.Parent = temp_h;
+        (Instance.new('UICorner', temp_n)).CornerRadius = UDim.new(0, 9)
+        local temp_o = Instance.new'UIStroke'
+        temp_o.Thickness = 1
+        temp_o.Color = Color3.fromRGB(55, 55, 75)
+        temp_o.Parent = temp_n
+        local temp_p = Instance.new'Frame'
+        temp_p.Size = UDim2.new(0, 86, 0, 86)
+        temp_p.Position = UDim2.new(0, 7, 0, 7)
+        temp_p.BackgroundColor3 = Color3.fromRGB(22, 22, 32)
+        temp_p.BorderSizePixel = 0
+        temp_p.ZIndex = 5
+        temp_p.Parent = temp_n;
+        (Instance.new('UICorner', temp_p)).CornerRadius = UDim.new(0, 7)
+        local temp_q = Instance.new'ImageLabel'
+        temp_q.Size = UDim2.new(1, 0, 1, 0)
+        temp_q.BackgroundTransparency = 1
+        temp_q.Image = temp_l.thumbnail or ''
+        temp_q.ScaleType = Enum.ScaleType.Fit
+        temp_q.ZIndex = 6
+        temp_q.Parent = temp_p
+        if not temp_l.thumbnail or temp_l.thumbnail == '' then
+            local temp_r
+            temp_r = Instance.new'TextLabel'
+            temp_r.Size = UDim2.new(1, 0, 1, 0)
+            temp_r.BackgroundTransparency = 1
+            temp_r.Text = '\u{1f464}'
+            temp_r.TextScaled = true
+            temp_r.Font = Enum.Font.GothamBold
+            temp_r.TextColor3 = Color3.fromRGB(90, 90, 110)
+            temp_r.ZIndex = 7
+            temp_r.Parent = temp_p
+        end
+        local temp_r = Instance.new'TextLabel'
+        temp_r.Size = UDim2.new(1, -108, 0, 26)
+        temp_r.Position = UDim2.new(0, 100, 0, 7)
+        temp_r.BackgroundTransparency = 1
+        temp_r.TextColor3 = Color3.fromRGB(255, 255, 255)
+        temp_r.Font = Enum.Font.GothamBold
+        temp_r.TextSize = 14
+        temp_r.TextTruncate = Enum.TextTruncate.AtEnd
+        temp_r.TextXAlignment = Enum.TextXAlignment.Left
+        temp_r.Text = temp_l.name
+        temp_r.ZIndex = 5
+        temp_r.Parent = temp_n
+        local temp_s = Instance.new'Frame'
+        temp_s.Size = UDim2.new(1, -108, 0, 1)
+        temp_s.Position = UDim2.new(0, 100, 0, 35)
+        temp_s.BackgroundColor3 = Color3.fromRGB(60, 60, 85)
+        temp_s.BorderSizePixel = 0
+        temp_s.ZIndex = 5
+        temp_s.Parent = temp_n
+        local temp_t = Instance.new'TextLabel'
+        temp_t.Size = UDim2.new(1, -108, 0, 16)
+        temp_t.Position = UDim2.new(0, 100, 0, 39)
+        temp_t.BackgroundTransparency = 1
+        temp_t.TextColor3 = Color3.fromRGB(120, 160, 120)
+        temp_t.Font = Enum.Font.Gotham
+        temp_t.TextSize = 11
+        temp_t.TextXAlignment = Enum.TextXAlignment.Left
+        temp_t.TextTruncate = Enum.TextTruncate.AtEnd
+        temp_t.Text = '\u{1f464} Clan Member'
+        temp_t.ZIndex = 5
+        temp_t.Parent = temp_n
+        local temp_u = Instance.new'TextButton'
+        temp_u.Size = UDim2.new(0, 100, 0, 30)
+        temp_u.Position = UDim2.new(0, 100, 0, 60)
+        temp_u.Text = '\u{25b6} Morph'
+        temp_u.Font = Enum.Font.GothamBold
+        temp_u.TextSize = 12
+        temp_u.TextColor3 = Color3.fromRGB(255, 255, 255)
+        temp_u.BackgroundColor3 = Color3.fromRGB(40, 130, 70)
+        temp_u.ZIndex = 5
+        temp_u.Parent = temp_n;
+        (Instance.new('UICorner', temp_u)).CornerRadius = UDim.new(0, 6)
+        local temp_v = Instance.new'TextButton'
+        temp_v.Size = UDim2.new(0, 80, 0, 30)
+        temp_v.Position = UDim2.new(0, 208, 0, 60)
+        temp_v.Text = '\u{1f5d1} Delete'
+        temp_v.Font = Enum.Font.GothamBold
+        temp_v.TextSize = 11
+        temp_v.TextColor3 = Color3.fromRGB(255, 255, 255)
+        temp_v.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
+        temp_v.ZIndex = 5
+        temp_v.Parent = temp_n;
+        (Instance.new('UICorner', temp_v)).CornerRadius = UDim.new(0, 6)
+        temp_v.MouseButton1Click:Connect(function()
+            local temp_x, temp_w = value_al and value_al.items
+            if temp_x then
+                table.remove(value_al.items, temp_m)
+                temp_w = {
+                    version = 8,
+                    name = value_al.name,
+                    isClan = value_al.isClan,
+                    items = value_al.items,
+                }
+                local temp_y, temp_z
+                temp_y, temp_z = pcall(function()
+                    return http_service:JSONEncode(temp_w)
+                end)
+                if temp_y and value_v then
+                    write_file_safe(value_v, temp_z)
+                    unused_callback('Clan Manager', temp_l.name .. ' dihapus.', 3)
+                    value_w(temp_c.Text)
+                end
+            end
+            return
+        end)
+        temp_u.MouseButton1Click:Connect(function()
+            task.spawn(function()
+                v7235 = {
+                    morph_saved_avatar(temp_l),
+                }
+                return
+            end)
+            return
+        end)
+        return temp_n
+    end
+    local function create_avatar_card(temp_l, temp_m)
+        local temp_n = (Instance.new'Frame')
+        temp_n.Size = UDim2.new(1, 0, 0, 110)
+        temp_n.BackgroundColor3 = Color3.fromRGB(28, 28, 38)
+        temp_n.BorderSizePixel = 0
+        temp_n.ZIndex = 4
+        temp_n.LayoutOrder = temp_m
+        temp_n.Parent = temp_h;
+        (Instance.new('UICorner', temp_n)).CornerRadius = UDim.new(0, 9)
+        local temp_o = Instance.new'UIStroke'
+        temp_o.Thickness = 1
+        temp_o.Color = Color3.fromRGB(55, 55, 75)
+        temp_o.Parent = temp_n
+        local temp_p = Instance.new'Frame'
+        temp_p.Size = UDim2.new(0, 86, 0, 86)
+        temp_p.Position = UDim2.new(0, 7, 0, 7)
+        temp_p.BackgroundColor3 = Color3.fromRGB(22, 22, 32)
+        temp_p.BorderSizePixel = 0
+        temp_p.ZIndex = 5
+        temp_p.Parent = temp_n;
+        (Instance.new('UICorner', temp_p)).CornerRadius = UDim.new(0, 7)
+        local temp_q = Instance.new'ImageLabel'
+        temp_q.Size = UDim2.new(1, 0, 1, 0)
+        temp_q.BackgroundTransparency = 1
+        temp_q.Image = temp_l.thumbnail or ''
+        temp_q.ScaleType = Enum.ScaleType.Fit
+        temp_q.ZIndex = 6
+        temp_q.Parent = temp_p
+        if not temp_l.thumbnail or temp_l.thumbnail == '' then
+            local temp_r
+            temp_r = Instance.new'TextLabel'
+            temp_r.Size = UDim2.new(1, 0, 1, 0)
+            temp_r.BackgroundTransparency = 1
+            temp_r.Text = '\u{1f464}'
+            temp_r.TextScaled = true
+            temp_r.Font = Enum.Font.GothamBold
+            temp_r.TextColor3 = Color3.fromRGB(90, 90, 110)
+            temp_r.ZIndex = 7
+            temp_r.Parent = temp_p
+        end
+        local temp_r, temp_s = ((temp_l.fileName:gsub('%.json$', '')):gsub('%.JSON$', '')), Instance.new'TextLabel'
+        temp_s.Size = UDim2.new(1, -108, 0, 26)
+        temp_s.Position = UDim2.new(0, 100, 0, 7)
+        temp_s.BackgroundTransparency = 1
+        temp_s.TextColor3 = Color3.fromRGB(255, 255, 255)
+        temp_s.Font = Enum.Font.GothamBold
+        temp_s.TextSize = 14
+        temp_s.TextTruncate = Enum.TextTruncate.AtEnd
+        temp_s.TextXAlignment = Enum.TextXAlignment.Left
+        temp_s.Text = temp_r
+        temp_s.ZIndex = 5
+        temp_s.Parent = temp_n
+        local temp_t = Instance.new'Frame'
+        temp_t.Size = UDim2.new(1, -108, 0, 1)
+        temp_t.Position = UDim2.new(0, 100, 0, 35)
+        temp_t.BackgroundColor3 = Color3.fromRGB(60, 60, 85)
+        temp_t.BorderSizePixel = 0
+        temp_t.ZIndex = 5
+        temp_t.Parent = temp_n
+        local temp_u, temp_v, temp_w = (temp_l._kind == 'clan')
+        if temp_u then
+            temp_v = '\u{1f465} Clan Database (' .. #(temp_l.data.items or {}) .. ' Members)'
+            temp_w = Color3.fromRGB(140, 180, 220)
+        else
+            temp_v = '\u{1f464} 1:1 Outfit Avatar'
+            temp_w = Color3.fromRGB(120, 220, 140)
+        end
+        local temp_x = Instance.new'TextLabel'
+        temp_x.Size = UDim2.new(1, -108, 0, 16)
+        temp_x.Position = UDim2.new(0, 100, 0, 39)
+        temp_x.BackgroundTransparency = 1
+        temp_x.TextColor3 = temp_w
+        temp_x.Font = Enum.Font.Gotham
+        temp_x.TextSize = 11
+        temp_x.TextXAlignment = Enum.TextXAlignment.Left
+        temp_x.TextTruncate = Enum.TextTruncate.AtEnd
+        temp_x.Text = temp_v
+        temp_x.ZIndex = 5
+        temp_x.Parent = temp_n
+        local temp_y = Instance.new'TextButton'
+        temp_y.Size = UDim2.new(0, 100, 0, 30)
+        temp_y.Position = UDim2.new(0, 100, 0, 60)
+        temp_y.Text = temp_u and '\u{1f4c2} Open' or '\u{25b6} Morph'
+        temp_y.Font = Enum.Font.GothamBold
+        temp_y.TextSize = 12
+        temp_y.TextColor3 = Color3.fromRGB(255, 255, 255)
+        local temp_z = temp_u
+        temp_z = temp_u and Color3.fromRGB(50, 100, 150)
+        temp_y.BackgroundColor3 = temp_z or Color3.fromRGB(40, 130, 70)
+        temp_y.ZIndex = 5
+        temp_y.Parent = temp_n;
+        (Instance.new('UICorner', temp_y)).CornerRadius = UDim.new(0, 6)
+        local _ = Instance.new'TextButton'
+        _.Size = UDim2.new(0, 80, 0, 30)
+        _.Position = UDim2.new(0, 208, 0, 60)
+        _.Text = '\u{270f} Rename'
+        _.Font = Enum.Font.GothamBold
+        _.TextSize = 11
+        _.TextColor3 = Color3.fromRGB(255, 255, 255)
+        _.BackgroundColor3 = Color3.fromRGB(70, 95, 160)
+        _.ZIndex = 5
+        _.Parent = temp_n;
+        (Instance.new('UICorner', _)).CornerRadius = UDim.new(0, 6)
+        local value_am = Instance.new'TextButton'
+        value_am.Size = UDim2.new(0, 80, 0, 30)
+        value_am.Position = UDim2.new(0, 296, 0, 60)
+        value_am.Text = '\u{1f5d1} Delete'
+        value_am.Font = Enum.Font.GothamBold
+        value_am.TextSize = 11
+        value_am.TextColor3 = Color3.fromRGB(255, 255, 255)
+        value_am.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
+        value_am.ZIndex = 5
+        value_am.Parent = temp_n;
+        (Instance.new('UICorner', value_am)).CornerRadius = UDim.new(0, 6)
+        temp_y.MouseButton1Click:Connect(function()
+            if temp_u then
+                value_ai = 'CLAN'
+                value_al = temp_l.data
+                value_v = temp_l.path
+                temp_c.Text = ''
+                value_w''
+            else
+                task.spawn(function()
+                    if (morph_saved_avatar(temp_l.data)) then
+                        unused_callback('Morph System', 'Berhasil morph menjadi ' .. temp_r, 3)
+                    end
+                    return
+                end)
+            end
+            return
+        end)
+        _.MouseButton1Click:Connect(function()
+            show_save_name_dialog(function(value_an)
+                local value_aq, value_ao, value_ap = value_an == '' or value_an == temp_r
+                if value_aq then
+                    return
+                else
+                    value_ao = (read_file_safe(temp_l.path))
+                    if value_ao then
+                        local value_ar
+                        value_ar, value_ap = pcall(function()
+                            return http_service:JSONDecode(value_ao)
+                        end)
+                        if value_ar and (type(value_ap)) == 'table' then
+                            local value_as, value_at = {
+                                pcall(function()
+                                    return http_service:JSONEncode(value_ap)
+                                end),
+                            }
+                            value_at = value_as[2]
+                            if value_as[1] then
+                                local value_au
+                                value_au = ((temp_l.path:match'^(.*)[/\\][^/\\]+$') or 'KIXDEV_AvatarChanger') .. '/' .. (sanitize_avatar_name(value_an)) .. '.json'
+                                if value_au ~= temp_l.path then
+                                    write_file_safe(value_au, value_at)
+                                    delete_file_safe(temp_l.path)
+                                    unused_callback('Rename', 'File diubah menjadi: ' .. value_an, 3)
+                                    value_w(temp_c.Text)
+                                end
+                            end
+                        end
+                    end
+                    return
+                end
+            end, '\u{270f} Rename File', 'Masukkan nama baru untuk file ini:', temp_r)
+            return
+        end)
+        value_am.MouseButton1Click:Connect(function()
+            delete_file_safe(temp_l.path)
+            unused_callback('Delete', 'File ' .. temp_r .. ' dihapus.', 3)
+            value_w(temp_c.Text)
+            return
+        end)
+        return temp_n
+    end
+    function value_w(value_am)
+        local value_an = temp_h.CanvasPosition
+        local value_ao, value_ap = (value_am or ''):lower(), 0
+        if value_ai == 'FILES' then
+            temp_d.Visible = false
+            value_z.Text = '\u{1f4c1}  Saved Morph Manager'
+            for value_aq, value_ar in ipairs((value_x())) do
+                local value_as
+                value_as = (value_ar.fileName:gsub('%.json$', '')):gsub('%.JSON$', '')
+                local value_at
+                value_at = (tostring(value_ar._kind)):lower()
+                local value_au
+                value_au = value_ao == ''
+                local temp_l
+                temp_l = value_au
+                if not value_au then
+                    local temp_m
+                    temp_m = (value_as:lower()):find(value_ao, 1, true)
+                    local temp_n
+                    temp_n = temp_m
+                    temp_l = temp_m or value_at:find(value_ao, 1, true)
+                end
+                if temp_l then
+                    create_avatar_card(value_ar, value_aq)
+                    value_ap = value_ap + 1
+                end
+            end
+            temp_k.Text = "Belum ada file JSON tersimpan.\nKlik 'Save Current Avatar'."
+        else
+            if value_ai == 'CLAN' then
+                temp_d.Visible = true
+                local value_aq
+                value_aq = value_z
+                value_z.Text = '\u{1f465} Clan: ' .. (value_al and value_al.name or 'Unknown')
+                if value_al and (type(value_al.items)) == 'table' then
+                    for value_ar, value_as in ipairs(value_al.items) do
+                        local value_at
+                        value_at = value_ao == ''
+                        local value_au
+                        value_au = value_at
+                        if not value_at then
+                            value_au = ((tostring(value_as.name)):lower()):find(value_ao, 1, true)
+                        end
+                        if value_au then
+                            create_saved_avatar_card(value_as, value_ar)
+                            value_ap = value_ap + 1
+                        end
+                    end
+                end
+                temp_k.Text = 'Grup ini kosong.'
+            end
+        end
+        temp_k.Visible = value_ap == 0
+        temp_f.Text = value_ap .. (value_ai == 'FILES' and ' file ditemukan' or ' member')
+        task.wait()
+        temp_h.CanvasSize = UDim2.new(0, 0, 0, temp_i.AbsoluteContentSize.Y + 14)
+        temp_h.CanvasPosition = value_an
+        return
+    end
+    (temp_c:GetPropertyChangedSignal'Text'):Connect(function()
+        value_w(temp_c.Text)
+        return
+    end)
+    value_w''
+    local value_am = false
+    local value_an, value_ao
+    value_ak.InputBegan:Connect(function(value_ap)
+        if value_ap.UserInputType == Enum.UserInputType.MouseButton1 or value_ap.UserInputType == Enum.UserInputType.Touch then
+            value_am = true
+            value_an = value_ap.Position
+            value_ao = value_ak.Position
+        end
+        return
+    end)
+    user_input_service.InputEnded:Connect(function(value_ap)
+        if value_ap.UserInputType == Enum.UserInputType.MouseButton1 or value_ap.UserInputType == Enum.UserInputType.Touch then
+            value_am = false
+        end
+        return
+    end)
+    user_input_service.InputChanged:Connect(function(value_ap)
+        local value_aq = value_am
+        local value_ar = value_aq
+        if value_aq then
+            value_ar = value_ap.UserInputType == Enum.UserInputType.MouseMovement or value_ap.UserInputType == Enum.UserInputType.Touch
+        end
+        if value_ar then
+            local value_as
+            value_as = value_ap.Position - value_an
+            value_ak.Position = UDim2.new(value_ao.X.Scale, value_ao.X.Offset + value_as.X, value_ao.Y.Scale, value_ao.Y.Offset + value_as.Y)
+        end
+        return
+    end)
+    return
+end
+value_x = function()
+    local value_am = {}
+    if not (filesystem_available()) then
+        return value_am
+    else
+        for value_an, value_ao in ipairs{
+            {
+                path = 'KIXDEV_AvatarChanger/Avatars',
+                kind = 'avatar',
+            },
+            {
+                path = 'KIXDEV_AvatarChanger/Clans',
+                kind = 'clan',
+            },
+        } do
+            for value_ap, value_aq in ipairs((list_files_safe(value_ao.path))) do
+                local value_ar
+                value_ar = tostring(value_aq)
+                local value_as
+                value_as = (value_ar:match'([^/\\]+)$') or value_ar
+                if ((value_as:lower()):match'%.json$') then
+                    local value_at, value_au = (read_file_safe(value_ar))
+                    value_au = value_at
+                    if value_at and value_at ~= '' then
+                        local value_y, value_z
+                        value_y, value_z = pcall(function()
+                            return http_service:JSONDecode(value_at)
+                        end)
+                        if value_y and (type(value_z)) == 'table' then
+                            local temp_a
+                            temp_a = value_as:sub(1, -6)
+                            local temp_b
+                            temp_b = table.insert
+                            local temp_c
+                            temp_c = value_z.name or temp_a
+                            local temp_d
+                            temp_d = temp_b
+                            local temp_e
+                            temp_e = value_z.thumbnail or ''
+                            local temp_f
+                            temp_f = temp_b
+                            temp_b(value_am, {
+                                fileName = value_as,
+                                path = value_ar,
+                                data = value_z,
+                                name = temp_c,
+                                thumbnail = temp_e,
+                                _kind = value_ao.kind,
+                            })
+                        end
+                    end
+                end
+            end
+        end
+        return value_am
+    end
+end
+local value_am
+local function create_main_ui()
+    pcall(function()
+        local value_an = (typeof(gethui)) == 'function' and gethui() or nil
+        if value_an then
+            local value_ao
+            value_ao = value_an:FindFirstChild'KixPhantomMorphUI'
+            if value_ao then
+                value_ao:Destroy()
+            end
+        end
+        return
+    end)
+    local value_an = local_player
+    local value_ao = value_an
+    if value_an then
+        value_ao = local_player:FindFirstChild'PlayerGui'
+    end
+    local value_ap = value_ao
+    if value_ap then
+        pcall(function()
+            local value_aq = value_ap:FindFirstChild'KixPhantomMorphUI'
+            if value_aq then
+                value_aq:Destroy()
+            end
+            return
+        end)
+    end
+    local value_aq = (Instance.new'ScreenGui')
+    value_aq.Name = 'KixPhantomMorphUI'
+    value_aq.ResetOnSpawn = false
+    protect_gui_safe(value_aq)
+    parent_gui_safe(value_aq)
+    local value_ar = (Instance.new'Frame')
+    value_ar.Size = UDim2.new(0, 280, 0, 600)
+    value_ar.Position = UDim2.new(0, 20, 0.5, -300)
+    value_ar.BackgroundColor3 = value_ag.BG
+    value_ar.BorderSizePixel = 0
+    value_ar.Active = true
+    value_ar.Parent = value_aq;
+    (Instance.new('UICorner', value_ar)).CornerRadius = UDim.new(0, 8);
+    (Instance.new('UIStroke', value_ar)).Color = value_ag.Divider
+    local value_as = Instance.new'Frame'
+    value_as.Size = UDim2.new(1, 0, 0, 36)
+    value_as.BackgroundTransparency = 1
+    value_as.Parent = value_ar
+    value_as.Active = true
+    local value_at = Instance.new'TextLabel'
+    value_at.Size = UDim2.new(1, -80, 1, 0)
+    value_at.Position = UDim2.new(0, 12, 0, 0)
+    value_at.BackgroundTransparency = 1
+    value_at.Text = 'AVATAR CHANGER by KIXDEV'
+    value_at.TextColor3 = value_ag.Accent
+    value_at.Font = Enum.Font.GothamBold
+    value_at.TextSize = 14
+    value_at.TextXAlignment = Enum.TextXAlignment.Left
+    value_at.Parent = value_as
+    local value_au = (Instance.new'TextButton')
+    value_au.Size = UDim2.new(0, 36, 0, 36)
+    value_au.Position = UDim2.new(1, -72, 0, 0)
+    value_au.Text = '-'
+    value_au.Font = Enum.Font.GothamBold
+    value_au.TextSize = 18
+    value_au.TextColor3 = value_ag.Text
+    value_au.BackgroundTransparency = 1
+    value_au.Parent = value_as
+    local value_y = Instance.new'TextButton'
+    value_y.Size = UDim2.new(0, 36, 0, 36)
+    value_y.Position = UDim2.new(1, -36, 0, 0)
+    value_y.Text = 'X'
+    value_y.Font = Enum.Font.GothamBold
+    value_y.TextSize = 16
+    value_y.TextColor3 = value_ag.Red
+    value_y.BackgroundTransparency = 1
+    value_y.Parent = value_as
+    local value_z = (Instance.new'Frame')
+    value_z.Size = UDim2.new(1, 0, 1, -36)
+    value_z.Position = UDim2.new(0, 0, 0, 36)
+    value_z.BackgroundTransparency = 1
+    value_z.Parent = value_ar
+    local temp_a = false
+    local temp_b, temp_c
+    value_as.InputBegan:Connect(function(temp_d)
+        if temp_d.UserInputType == Enum.UserInputType.MouseButton1 or temp_d.UserInputType == Enum.UserInputType.Touch then
+            temp_a = true
+            temp_b = temp_d.Position
+            temp_c = value_ar.Position
+        end
+        return
+    end)
+    user_input_service.InputEnded:Connect(function(temp_d)
+        if temp_d.UserInputType == Enum.UserInputType.MouseButton1 or temp_d.UserInputType == Enum.UserInputType.Touch then
+            temp_a = false
+        end
+        return
+    end)
+    user_input_service.InputChanged:Connect(function(temp_d)
+        local temp_e = temp_a
+        local temp_f = temp_e
+        if temp_e then
+            temp_f = temp_d.UserInputType == Enum.UserInputType.MouseMovement or temp_d.UserInputType == Enum.UserInputType.Touch
+        end
+        if temp_f then
+            local temp_g
+            temp_g = temp_d.Position - temp_b
+            value_ar.Position = UDim2.new(temp_c.X.Scale, temp_c.X.Offset + temp_g.X, temp_c.Y.Scale, temp_c.Y.Offset + temp_g.Y)
+        end
+        return
+    end)
+    local temp_d, temp_e, temp_f = false, (UDim2.new(0, 280, 0, 600)), (UDim2.new(0, 280, 0, 36))
+    value_au.MouseButton1Click:Connect(function()
+        local temp_g = (not temp_d)
+        temp_d = temp_g
+        value_ar.Size = temp_d and temp_f or temp_e
+        value_au.Text = temp_d and '+' or '-'
+        value_z.Visible = not temp_d
+        return
+    end)
+    value_y.MouseButton1Click:Connect(function()
+        cleanup_morph()
+        restore_default_animations()
+        if value_s then
+            pcall(function()
+                value_s:Disconnect()
+                return
+            end)
+        end
+        if value_am then
+            pcall(function()
+                value_am:Disconnect()
+                return
+            end)
+        end
+        if value_aj then
+            pcall(function()
+                value_aj:Destroy()
+                return
+            end)
+        end
+        if value_ah then
+            pcall(function()
+                value_ah:Destroy()
+                return
+            end)
+        end
+        pcall(function()
+            value_aq:Destroy()
+            return
+        end)
+        return
+    end)
+    user_input_service.InputBegan:Connect(function(temp_g, temp_h)
+        if temp_h then
+            return
+        else
+            if temp_g.KeyCode == Enum.KeyCode.Comma then
+                value_aq.Enabled = not value_aq.Enabled
+            end
+            return
+        end
+    end)
+    local temp_g = (Instance.new'TextLabel')
+    temp_g.Size = UDim2.new(1, -24, 0, 15)
+    temp_g.Position = UDim2.new(0, 12, 0, 5)
+    temp_g.BackgroundTransparency = 1
+    temp_g.Text = 'Status: Idle'
+    temp_g.TextColor3 = Color3.fromRGB(150, 150, 150)
+    temp_g.Font = Enum.Font.Gotham
+    temp_g.TextSize = 11
+    temp_g.TextXAlignment = Enum.TextXAlignment.Left
+    temp_g.Parent = value_z
+    local function set_status_text(temp_h, temp_i)
+        temp_g.Text = temp_h
+        temp_g.TextColor3 = temp_i or value_ag.Accent
+        return
+    end
+    local temp_h = (Instance.new'TextBox')
+    temp_h.Size = UDim2.new(1, -24, 0, 30)
+    temp_h.Position = UDim2.new(0, 12, 0, 25)
+    temp_h.BackgroundColor3 = value_ag.Panel
+    temp_h.TextColor3 = value_ag.Text
+    temp_h.Text = ''
+    temp_h.PlaceholderText = 'Search by username or ID...'
+    temp_h.Font = Enum.Font.Gotham
+    temp_h.TextSize = 12
+    temp_h.Parent = value_z;
+    (Instance.new('UICorner', temp_h)).CornerRadius = UDim.new(0, 4)
+    local function create_action_button(temp_i, temp_j, temp_k)
+        local temp_l = Instance.new'TextButton'
+        temp_l.Size = UDim2.new(1, -24, 0, 28)
+        temp_l.Position = UDim2.new(0, 12, 0, temp_i)
+        temp_l.BackgroundColor3 = temp_k
+        temp_l.Text = temp_j
+        temp_l.TextColor3 = value_ag.Text
+        temp_l.Font = Enum.Font.GothamBold
+        temp_l.TextSize = 12
+        temp_l.Parent = value_z;
+        (Instance.new('UICorner', temp_l)).CornerRadius = UDim.new(0, 4)
+        return temp_l
+    end
+    local temp_i = (create_action_button(60, '> Morph by Target', value_ag.Panel))
+    local temp_j, temp_k, temp_l = create_action_button(93, '[X] Unmorph (Restore Self)', value_ag.Red), false, 0
+    local function submit_morph_request()
+        if temp_k then
+            return
+        else
+            local temp_m
+            temp_m = temp_h.Text
+            if temp_m == '' then
+                return set_status_text('Input kosong!', value_ag.Red)
+            else
+                local temp_n
+                temp_n = 15 - ((os.time()) - temp_l)
+                if temp_n > 0 then
+                    return set_status_text('Spam terdeteksi! Tunggu ' .. temp_n .. ' detik.', value_ag.Red)
+                else
+                    temp_k = true
+                    temp_i.Text = 'Memproses...'
+                    set_status_text('Resolving ' .. temp_m .. '...', value_ag.Text)
+                    local temp_o, temp_p
+                    temp_o, temp_p = morph_by_user(temp_m)
+                    if temp_o then
+                        temp_l = (os.time())
+                    end
+                    local temp_q
+                    temp_q = set_status_text
+                    set_status_text(temp_p, temp_o and value_ag.Green or value_ag.Red)
+                    temp_i.Text = '> Morph by Target'
+                    temp_k = false
+                    return
+                end
+            end
+        end
+    end
+    temp_i.MouseButton1Click:Connect(submit_morph_request)
+    temp_h.FocusLost:Connect(function(temp_m)
+        if temp_m then
+            submit_morph_request()
+        end
+        return
+    end)
+    temp_j.MouseButton1Click:Connect(function()
+        cleanup_morph()
+        set_status_text('Karakter dikembalikan.', value_ag.Accent)
+        return
+    end)
+    local temp_m = Instance.new'Frame'
+    temp_m.Size = UDim2.new(1, -24, 0, 1)
+    temp_m.Position = UDim2.new(0, 12, 0, 130)
+    temp_m.BackgroundColor3 = value_ag.Divider
+    temp_m.BorderSizePixel = 0
+    temp_m.Parent = value_z
+    local temp_n, temp_o = create_action_button(138, '\u{1f4be} Save Current Avatar', Color3.fromRGB(43, 105, 122)), create_action_button(171, '\u{1f4c2} Open Saved Manager', Color3.fromRGB(60, 80, 100))
+    temp_n.MouseButton1Click:Connect(function()
+        if not (filesystem_available()) then
+            set_status_text('Executor tidak mendukung File API!', value_ag.Red)
+            return
+        else
+            character7 = value_u or local_player.Character
+            local temp_p
+            temp_p = character7
+            local temp_q
+            temp_q = character7
+            local temp_r
+            temp_r = character7
+            if character7 then
+                local temp_s
+                temp_s = character7
+                temp_r = character7:FindFirstChildOfClass'Humanoid'
+            end
+            v673 = temp_r
+            if not v673 then
+                return
+            else
+                show_save_name_dialog(function(temp_s)
+                    task.spawn(function()
+                        local temp_t = {
+                            version = 8,
+                            userId = local_player.UserId,
+                            name = temp_s,
+                            displayName = local_player.DisplayName,
+                            thumbnail = '',
+                            descData = (serialize_humanoid_description(v673:GetAppliedDescription())),
+                            accData = (capture_accessory_transforms(character7)),
+                            bodyData = (capture_body_parts(character7)),
+                            overheadsData = (capture_gui_instances(character7, not value_u)),
+                            overheadMapData = (capture_gui_overrides(character7)),
+                            isHeadless = false,
+                            hideVFX = false,
+                        }
+                        pcall(function()
+                            temp_t.thumbnail = players:GetUserThumbnailAsync(local_player.UserId, Enum.ThumbnailType.AvatarBust, Enum.ThumbnailSize.Size100x100)
+                            return
+                        end)
+                        local temp_u = {
+                            pcall(function()
+                                return http_service:JSONEncode(temp_t)
+                            end),
+                        }
+                        local temp_v = temp_u[2]
+                        if temp_u[1] then
+                            write_file_safe((get_avatar_file_path(temp_s)), temp_v)
+                            set_status_text('\u{2714} Tersimpan: ' .. (sanitize_avatar_name(temp_s)) .. '.json', value_ag.Green)
+                            unused_callback('Save Avatar', (sanitize_avatar_name(temp_s)) .. ' berhasil disimpan.', 3)
+                        else
+                            set_status_text('Error JSON Encode', value_ag.Red)
+                        end
+                        return
+                    end)
+                    return
+                end)
+                return
+            end
+        end
+    end)
+    temp_o.MouseButton1Click:Connect(function()
+        if not value_aj then
+            show_saved_avatars_popup()
+        else
+            value_aj.Enabled = true
+            value_w''
+        end
+        return
+    end)
+    local temp_p = Instance.new'Frame'
+    temp_p.Size = UDim2.new(1, -24, 0, 1)
+    temp_p.Position = UDim2.new(0, 12, 0, 208)
+    temp_p.BackgroundColor3 = value_ag.Divider
+    temp_p.BorderSizePixel = 0
+    temp_p.Parent = value_z
+    local temp_q = (Instance.new'TextLabel')
+    temp_q.Size = UDim2.new(1, -24, 0, 20)
+    temp_q.Position = UDim2.new(0, 12, 0, 215)
+    temp_q.BackgroundTransparency = 1
+    temp_q.TextXAlignment = Enum.TextXAlignment.Left
+    temp_q.Font = Enum.Font.Gotham
+    temp_q.TextSize = 12
+    temp_q.TextColor3 = Color3.fromRGB(200, 200, 200)
+    temp_q.Text = 'Anim Pack: Default'
+    temp_q.Parent = value_z
+    local temp_r = (Instance.new'TextBox')
+    temp_r.Size = UDim2.new(1, -24, 0, 30)
+    temp_r.Position = UDim2.new(0, 12, 0, 240)
+    temp_r.BackgroundColor3 = value_ag.Panel
+    temp_r.TextColor3 = value_ag.Text
+    temp_r.PlaceholderText = 'Search pack...'
+    temp_r.Text = ''
+    temp_r.ClearTextOnFocus = false
+    temp_r.Font = Enum.Font.Gotham
+    temp_r.TextSize = 12
+    temp_r.Parent = value_z;
+    (Instance.new('UICorner', temp_r)).CornerRadius = UDim.new(0, 4)
+    local temp_s = Instance.new'Frame'
+    temp_s.Size = UDim2.new(1, -24, 0, 160)
+    temp_s.Position = UDim2.new(0, 12, 0, 275)
+    temp_s.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+    temp_s.BorderSizePixel = 0
+    temp_s.Parent = value_z;
+    (Instance.new('UICorner', temp_s)).CornerRadius = UDim.new(0, 6)
+    local temp_t = (Instance.new'ScrollingFrame')
+    temp_t.Size = UDim2.new(1, -10, 1, -10)
+    temp_t.Position = UDim2.new(0, 5, 0, 5)
+    temp_t.BackgroundTransparency = 1
+    temp_t.BorderSizePixel = 0
+    temp_t.ScrollBarThickness = 4
+    temp_t.CanvasSize = UDim2.new(0, 0, 0, 0)
+    temp_t.Parent = temp_s
+    local temp_u = (Instance.new'UIListLayout')
+    temp_u.Padding = UDim.new(0, 6)
+    temp_u.SortOrder = Enum.SortOrder.LayoutOrder
+    temp_u.Parent = temp_t
+    local temp_v = Instance.new'UIPadding'
+    temp_v.PaddingTop = UDim.new(0, 4)
+    temp_v.PaddingBottom = UDim.new(0, 4)
+    temp_v.PaddingLeft = UDim.new(0, 4)
+    temp_v.PaddingRight = UDim.new(0, 4)
+    temp_v.Parent = temp_t
+    local function update_canvas_size()
+        task.wait()
+        temp_t.CanvasSize = UDim2.new(0, 0, 0, temp_u.AbsoluteContentSize.Y + 10)
+        return
+    end
+    (temp_u:GetPropertyChangedSignal'AbsoluteContentSize'):Connect(update_canvas_size)
+    local temp_w = Instance.new'TextButton'
+    temp_w.Size = UDim2.new(1, 0, 0, 30)
+    temp_w.BackgroundColor3 = Color3.fromRGB(140, 50, 50)
+    temp_w.TextColor3 = value_ag.Text
+    temp_w.Font = Enum.Font.GothamBold
+    temp_w.TextSize = 12
+    temp_w.Text = '\u{1f31f} Restore Default Animations'
+    temp_w.AutoButtonColor = true
+    temp_w.LayoutOrder = -1
+    temp_w.BorderSizePixel = 0
+    temp_w.Parent = temp_t;
+    (Instance.new('UICorner', temp_w)).CornerRadius = UDim.new(0, 4)
+    temp_w.Activated:Connect(function()
+        if (restore_default_animations()) then
+            temp_q.Text = 'Anim Pack: Default'
+        end
+        return
+    end)
+    local temp_x = {}
+    for temp_y, temp_z in ipairs{
+        'Adidas Sports',
+        'Adidas Community',
+        'Adidas Aura',
+    } do
+        temp_x[temp_z] = temp_y
+    end
+    local temp_y = {}
+    for temp_z in pairs(value_o) do
+        table.insert(temp_y, temp_z)
+    end
+    table.sort(temp_y, function(temp_z, _)
+        local value_av, value_aw = temp_x[_], temp_x[temp_z]
+        if value_aw and value_av then
+            return value_aw < value_av
+        else
+            if value_aw then
+                return true
+            else
+                if value_av then
+                    return false
+                else
+                    return (temp_z:lower()) < (_:lower())
+                end
+            end
+        end
+    end)
+    local value_av = {}
+    for value_aw, temp_z in ipairs(temp_y) do
+        local _, value_ax = temp_z
+        value_ax = Instance.new'TextButton'
+        value_ax.Size = UDim2.new(1, 0, 0, 30)
+        value_ax.BackgroundColor3 = value_ag.Panel
+        value_ax.TextColor3 = value_ag.Text
+        value_ax.Font = Enum.Font.GothamBold
+        value_ax.TextSize = 12
+        value_ax.Text = _
+        value_ax.AutoButtonColor = true
+        value_ax.LayoutOrder = value_aw
+        value_ax.BorderSizePixel = 0
+        value_ax.Parent = temp_t;
+        (Instance.new('UICorner', value_ax)).CornerRadius = UDim.new(0, 4)
+        value_ax.Activated:Connect(function()
+            local value_ay = apply_animation_pack(_)
+            temp_q.Text = value_ay and 'Anim Pack: ' .. _ or 'Anim Pack: (failed) ' .. _
+            return
+        end)
+        value_av[_] = value_ax
+    end
+    update_canvas_size()
+    (temp_r:GetPropertyChangedSignal'Text'):Connect(function()
+        local value_aw = (temp_r.Text:lower())
+        for value_ax, value_ay in pairs(value_av) do
+            local temp_z
+            temp_z = value_aw == ''
+            local _
+            _ = temp_z
+            if not temp_z then
+                _ = ((value_ax:lower()):find(value_aw, 1, true)) ~= nil
+            end
+            value_ay.Visible = _
+        end
+        update_canvas_size()
+        return
+    end)
+    local value_aw = Instance.new'Frame'
+    value_aw.Size = UDim2.new(1, -24, 0, 1)
+    value_aw.Position = UDim2.new(0, 12, 0, 445)
+    value_aw.BackgroundColor3 = value_ag.Divider
+    value_aw.BorderSizePixel = 0
+    value_aw.Parent = value_z
+    local value_ax = Instance.new'TextLabel'
+    value_ax.Size = UDim2.new(1, -24, 0, 20)
+    value_ax.Position = UDim2.new(0, 12, 0, 455)
+    value_ax.BackgroundTransparency = 1
+    value_ax.TextXAlignment = Enum.TextXAlignment.Left
+    value_ax.Font = Enum.Font.GothamBold
+    value_ax.TextSize = 12
+    value_ax.TextColor3 = value_ag.Accent
+    value_ax.Text = 'Custom Emote Player by ID'
+    value_ax.Parent = value_z
+    local value_ay = (Instance.new'TextBox')
+    value_ay.Size = UDim2.new(1, -24, 0, 30)
+    value_ay.Position = UDim2.new(0, 12, 0, 480)
+    value_ay.BackgroundColor3 = value_ag.Panel
+    value_ay.TextColor3 = value_ag.Text
+    value_ay.PlaceholderText = 'Insert ID Emote...'
+    value_ay.Text = ''
+    value_ay.ClearTextOnFocus = false
+    value_ay.Font = Enum.Font.Gotham
+    value_ay.TextSize = 12
+    value_ay.Parent = value_z;
+    (Instance.new('UICorner', value_ay)).CornerRadius = UDim.new(0, 4)
+    local temp_z = Instance.new'TextButton'
+    temp_z.Size = UDim2.new(0.5, -16, 0, 28)
+    temp_z.Position = UDim2.new(0, 12, 0, 515)
+    temp_z.BackgroundColor3 = value_ag.Green
+    temp_z.Text = 'Play'
+    temp_z.TextColor3 = value_ag.Text
+    temp_z.Font = Enum.Font.GothamBold
+    temp_z.TextSize = 12
+    temp_z.Parent = value_z;
+    (Instance.new('UICorner', temp_z)).CornerRadius = UDim.new(0, 4)
+    local _ = Instance.new'TextButton'
+    _.Size = UDim2.new(0.5, -16, 0, 28)
+    _.Position = UDim2.new(0.5, 4, 0, 515)
+    _.BackgroundColor3 = value_ag.Red
+    _.Text = 'Stop'
+    _.TextColor3 = value_ag.Text
+    _.Font = Enum.Font.GothamBold
+    _.TextSize = 12
+    _.Parent = value_z;
+    (Instance.new('UICorner', _)).CornerRadius = UDim.new(0, 4)
+    temp_z.MouseButton1Click:Connect(function()
+        play_animation_asset(value_ay.Text, value_ay)
+        return
+    end)
+    _.MouseButton1Click:Connect(stop_custom_animation)
+    task.defer(function()
+        local value_az = local_player:GetAttribute'AnimPack_Last'
+        local value_ba = (type(value_az)) == 'string'
+        local value_bb = value_ba
+        if value_ba then
+            value_bb = value_az ~= '' and value_o[value_az]
+        end
+        if value_bb then
+            temp_q.Text = 'Anim Pack: ' .. value_az .. ' (saved)'
+        else
+            temp_q.Text = 'Anim Pack: Default'
+        end
+        return
+    end)
+    value_am = (local_player.CharacterAdded:Connect(function()
+        if value_u then
+            task.wait(0.5)
+            hide_original_character()
+        end
+        return
+    end))
+    return
+end
+create_main_ui()
