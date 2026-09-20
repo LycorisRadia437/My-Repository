@@ -83,7 +83,7 @@ local function TeleportToNamedItem(itemName)
 end
 
 -- Initialize Neptune Library
-local Neptune = loadstring(game:HttpGet("https://githubusercontent.com"))()
+local Neptune = loadstring(game:HttpGet("https://raw.githubusercontent.com/JinxTheCatto/Neptune/main/Games/Dependencies/UniversInit.lua"))()
 
 local UniversalTab = Neptune:CreateTab("Universal")
 local HumanTab = Neptune:CreateTab("Human")
