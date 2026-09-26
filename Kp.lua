@@ -70,7 +70,7 @@ local function TeleportToNamedItem(itemName)
 end
 
 -- Tải Thư viện UI Neptune gốc
-local Neptune = loadstring(game:HttpGet("https://githubusercontent.com"))()
+local Neptune = loadstring(game:HttpGet("https://raw.githubusercontent.com/JinxTheCatto/Neptune/refs/heads/main/Games/Dependencies/UniversInit.lua"))()
 
 -- Khởi tạo các Tab (Sử dụng 'text' thay vì 'Name' để map đúng với cấu trúc Neptune)
 local UniversalTab = Neptune:CreateTab({text = "Universal"})
