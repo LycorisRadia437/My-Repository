@@ -14,7 +14,7 @@ _G.TitleSuffix = "Kaiju Paradise"
 
 -- Load Neptune UI Library & Dependencies
 pcall(function()
-    loadstring(game:HttpGet("https://githubusercontent.com"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/JinxTheCatto/Neptune/main/Games/Dependencies/UniversInit.lua"))()
 end)
 
 local espFolderName = (_G.MakeString and _G.MakeString(16)) or "KP_ESP_Folder"
