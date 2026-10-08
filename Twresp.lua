@@ -154,7 +154,7 @@ local function applyESP(model)
                     BOX_Z
                 )
             -- Chỉnh vị trí lệch tâm (Offset X, Y, Z)
-            clientBox.CFrame = CFrame.new(0, 0, 0)
+            clientBox.CFrame = CFrame.new(0, 0.875, 0)
 
             -- Độ trong suốt
             clientBox.Transparency = 0.55
