@@ -144,9 +144,9 @@ local function applyESP(model)
             clientBox.AlwaysOnTop = true
 
             -- Box nhỏ
-            local BOX_X = 1.20
-            local BOX_Y = 1.75
-            local BOX_Z = 1.20
+            local BOX_X = 2.5
+            local BOX_Y = 1.7
+            local BOX_Z = 3
             clientBox.Size =
                 mainPart.Size + Vector3.new(
                     BOX_X,
@@ -154,7 +154,7 @@ local function applyESP(model)
                     BOX_Z
                 )
             -- Chỉnh vị trí lệch tâm (Offset X, Y, Z)
-            clientBox.CFrame = CFrame.new(0, 0.875, 0)
+            clientBox.CFrame = CFrame.new(0, 0, 0)
 
             -- Độ trong suốt
             clientBox.Transparency = 0.55
