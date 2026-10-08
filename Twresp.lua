@@ -144,9 +144,9 @@ local function applyESP(model)
             clientBox.AlwaysOnTop = true
 
             -- Box nhỏ
-            local BOX_X = 1.75
+            local BOX_X = 1.30
             local BOX_Y = 1.55
-            local BOX_Z = 1.35
+            local BOX_Z = 1.20
             clientBox.Size =
                 mainPart.Size + Vector3.new(
                     BOX_X,
