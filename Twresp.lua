@@ -145,8 +145,8 @@ local function applyESP(model)
 
             -- Box nhỏ
             local BOX_X = 1.67
-            local BOX_Y = 1.55
-            local BOX_Z = 1.45
+            local BOX_Y = 1.70
+            local BOX_Z = 1.35
             clientBox.Size =
                 mainPart.Size + Vector3.new(
                     BOX_X,
