@@ -148,12 +148,14 @@ local function applyESP(model)
             local BOX_Y = 1.954
             local BOX_Z = 0.75
             
-            -- Tính toán kích thước tổng của Box hoàn chỉnh
-            local finalSize = mainPart.Size + Vector3.new(BOX_X, BOX_Y, BOX_Z)
+            -- Định hình kích thước chuẩn cố định cho Box hoàn chỉnh
+            -- Thay vì cộng thêm, chúng ta đặt thẳng kích thước bạn mong muốn
+            local finalSize = Vector3.new(0.555, 1.954, 0.75)
             clientBox.Size = finalSize
             
-            -- Trừ đi khoảng lệch để kéo đáy hộp xuống chạm sát mặt đất
-            local offsetY = (mainPart.Size.Y / 2) - (finalSize.Y / 2)
+            -- Đẩy tâm của Box xuống một khoảng bằng nửa chiều cao của chính nó 
+            -- kết hợp với vị trí tâm của mainPart để đáy hộp trùng khớp mặt đất
+            local offsetY = - (finalSize.Y / 2)
             clientBox.CFrame = CFrame.new(0, offsetY, 0)
             
             -- Độ trong suốt
