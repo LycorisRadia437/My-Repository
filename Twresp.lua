@@ -144,9 +144,9 @@ local function applyESP(model)
             clientBox.AlwaysOnTop = true
 
             -- Box nhỏ
-            local BOX_X = 1.20
+            local BOX_X = 1.45
             local BOX_Y = 1.60
-            local BOX_Z = 1.20
+            local BOX_Z = 1.35
             clientBox.Size =
                 mainPart.Size + Vector3.new(
                     BOX_X,
@@ -155,7 +155,7 @@ local function applyESP(model)
                 )
 
             -- Độ trong suốt
-            clientBox.Transparency = 0.15
+            clientBox.Transparency = 0.45
 
             -- Cyan
             clientBox.Color3 =
