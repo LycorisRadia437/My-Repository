@@ -155,7 +155,7 @@ local function applyESP(model)
                 )
 
             -- Tự động đẩy đáy Box lên bằng mặt đáy vật phẩm (BOX_Y / 2 = 0.9725)
-            clientBox.CFrame = CFrame.new(0, BOX_Y / 1, 0)
+            clientBox.CFrame = CFrame.new(0, BOX_Y / 3, 0)
             
             -- Độ trong suốt
             clientBox.Transparency = 0.55
