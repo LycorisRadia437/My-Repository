@@ -143,20 +143,19 @@ local function applyESP(model)
             -- Xuyên tường
             clientBox.AlwaysOnTop = true
 
-            -- Box nhỏ
+            -- Box
             local BOX_X = 0.555
-            local BOX_Y = 1.954
-            local BOX_Z = 0.75
-            
-            -- Định hình kích thước chuẩn cố định cho Box hoàn chỉnh
-            -- Thay vì cộng thêm, chúng ta đặt thẳng kích thước bạn mong muốn
-            local finalSize = Vector3.new(0.555, 1.954, 0.75)
-            clientBox.Size = finalSize
-            
-            -- Đẩy tâm của Box xuống một khoảng bằng nửa chiều cao của chính nó 
-            -- kết hợp với vị trí tâm của mainPart để đáy hộp trùng khớp mặt đất
-            local offsetY = - (finalSize.Y / 2)
-            clientBox.CFrame = CFrame.new(0, offsetY, 0)
+            local BOX_Y = 1.945
+            local BOX_Z = 0.74
+            clientBox.Size =
+                mainPart.Size + Vector3.new(
+                    BOX_X,
+                    BOX_Y,
+                    BOX_Z
+                )
+
+            -- Tự động đẩy đáy Box lên bằng mặt đáy vật phẩm (BOX_Y / 2 = 0.9725)
+            clientBox.CFrame = CFrame.new(0, BOX_Y / 2, 0)
             
             -- Độ trong suốt
             clientBox.Transparency = 0.55
