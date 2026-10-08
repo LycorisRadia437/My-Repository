@@ -146,9 +146,9 @@ local function applyESP(model)
             -- Box nhỏ
             clientBox.Size =
                 mainPart.Size + Vector3.new(
-                    0.8,
-                    0.8,
-                    0.8
+                    mainPart.Size.X + 0.05,
+                    mainPart.Size.Y + 0.05,
+                    mainPart.Size.Z + 0.05
                 )
 
             -- Độ trong suốt
