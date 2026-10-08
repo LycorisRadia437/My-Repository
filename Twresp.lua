@@ -144,7 +144,7 @@ local function applyESP(model)
             clientBox.AlwaysOnTop = true
 
             -- Box nhỏ
-            local BOX_X = 1.55
+            local BOX_X = 1.65
             local BOX_Y = 1.60
             local BOX_Z = 1.45
             clientBox.Size =
