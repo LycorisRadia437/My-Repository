@@ -854,7 +854,7 @@ ESPTab:CreateColorPicker({Name = "Zombie Chams Color", Color = Color3.fromRGB(25
 ESPTab:CreateSlider({Name = "Fill Transparency",    Range = {0, 1}, Increment = 0.05, Suffix = "", CurrentValue = 0.5, Flag = "Chams_FillTransparency",    Callback = function(v) Config.Chams_FillTransparency    = v end})
 ESPTab:CreateSlider({Name = "Outline Transparency", Range = {0, 1}, Increment = 0.05, Suffix = "", CurrentValue = 0.1, Flag = "Chams_OutlineTransparency", Callback = function(v) Config.Chams_OutlineTransparency = v end})
 
-local HitboxTab = Window:CreateTab({ Name = "Hitbox", Icon = 4483362458 })
+local HitboxTab = Window:CreateTab({ Name = "Hitbox", Icon = nil })
 HitboxTab:CreateSection("Zombie Hitbox")
 HitboxTab:CreateToggle({Name = "Enable Hitbox", CurrentValue = false, Flag = "Hitbox_Enabled", Callback = function(v) Config.Hitbox_Enabled = v; if not v then restoreAllHitboxes() end end})
 HitboxTab:CreateSlider({Name = "Size",         Range = {3, 60}, Increment = 1,    Suffix = " studs", CurrentValue = 15,  Flag = "Hitbox_Size",         Callback = function(v) Config.Hitbox_Size         = v end})
@@ -863,10 +863,10 @@ HitboxTab:CreateSection("Style")
 HitboxTab:CreateColorPicker({Name = "Color", Color = Color3.fromRGB(255, 0, 80), Flag = "Hitbox_Color", Callback = function(v) Config.Hitbox_Color = v end})
 HitboxTab:CreateButton({Name = "Restore", Callback = function() restoreAllHitboxes() end})
 
-local WeaponTab = Window:CreateTab({ Name = "Weapon", Icon = 4483362458 })
+local WeaponTab = Window:CreateTab({ Name = "Weapon", Icon = nil })
 WeaponTab:CreateToggle({Name = "Infinite Ammo", CurrentValue = false, Flag = "InfAmmo", Callback = function(v) Config.InfAmmo = v end})
 
-local MovementTab = Window:CreateTab({ Name = "Movement", Icon = 4483362458 })
+local MovementTab = Window:CreateTab({ Name = "Movement", Icon = nil })
 MovementTab:CreateSection("Fly")
 MovementTab:CreateToggle({Name = "Fly", CurrentValue = false, Flag = "Fly", Callback = function(v) Config.Fly = v end})
 MovementTab:CreateSlider({Name = "Fly Speed", Range = {10, 200}, Increment = 5, Suffix = "", CurrentValue = 50, Flag = "FlySpeed", Callback = function(v) Config.FlySpeed = v end})
@@ -876,7 +876,7 @@ MovementTab:CreateSlider({Name = "Speed Value", Range = {16, 100}, Increment = 1
 MovementTab:CreateSection("Jump")
 MovementTab:CreateToggle({Name = "Infinite Jump", CurrentValue = false, Flag = "InfiniteJump", Callback = function(v) Config.InfiniteJump = v end})
 
-local MiscTab = Window:CreateTab({ Name = "Misc", Icon = 4483362458 })
+local MiscTab = Window:CreateTab({ Name = "Misc", Icon = nil })
 MiscTab:CreateSection("Utility")
 MiscTab:CreateToggle({Name = "Full Bright", CurrentValue = false, Flag = "FullBright", Callback = function(v)
     Config.FullBright = v
