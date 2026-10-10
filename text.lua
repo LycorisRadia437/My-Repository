@@ -904,5 +904,5 @@ MiscTab:CreateKeybind({
     end
 })
 
-local ACTab = Window:CreateTab({ Name = "Anti Cheat Bypass", Icon = 4483362458 })
+local ACTab = Window:CreateTab({ Name = "Anti Cheat Bypass", Icon = nil })
 ACTab:CreateToggle({Name = "Enable", CurrentValue = false, Flag = "AC_Bypass", Callback = function(v) Config.AC_Bypass = v; if v then enableACBypass() else disableACBypass() end end})
